@@ -2,6 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.amarchaud.estats">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Network position (wifi...) (200 ft precision) -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- GPS (20 ft precision) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Required only when requesting background location access on
+         Android 10 (API level 29) and higher. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
     <application
         android:name=".application.eStatsApplication"
         android:allowBackup="true"
@@ -20,6 +32,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service android:name=".service.PositionService"/>
 
     </application>
 

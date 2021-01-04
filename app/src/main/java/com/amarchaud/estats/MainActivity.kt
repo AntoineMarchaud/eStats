@@ -23,14 +23,15 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.my_first_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        /*
+
+        // top Fragment (no arrow displayed, and display hamburger if there is a drawerlayout)
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.splashFragment,
-                R.id.createAccountFragment,
-                R.id.lastMessagesFragment
+                R.id.requestPositionFragment,
+                R.id.mainFragment
             )
-        )*/
+        )
 
         // actionBar config
         setupActionBarWithNavController(navController, appBarConfiguration)

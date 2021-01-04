@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">eStats</string>
+    <!-- Fragment Labels -->
+    <string name="splashFragmentLabel">SplashScreen</string>
+    <string name="requestPositionFragmentLabel">Need permission</string>
+    <!-- Texts -->
+    <string name="permission_explain">This app is using gps permission to work. Please authorize</string>
+    <string name="askPermission">Ask location permission</string>
+    <string name="permissionGpsTitle">Permission needed</string>
+    <string name="permissionGpsMessage">We need location for auto-detection</string>
+    <string name="permissionGpsOk">Go to settings</string>
+    <string name="permissionGpsCancel">Cancel</string>
+    <!-- Shared Pref -->
+    <string name="globalPref">globalPref</string>
+    <string name="isFirstLaunch">isFirstLaunch</string>
 </resources>

@@ -1,5 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/nav_graph">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/splashFragment">
 
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.amarchaud.estats.view.SplashFragment"
+        android:label="@string/splashFragmentLabel"
+        tools:layout="@layout/splash_fragment">
+        <action
+            android:id="@+id/action_splashFragment_to_requestPositionFragment"
+            app:destination="@id/requestPositionFragment"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_splashFragment_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/requestPositionFragment"
+        android:name="com.amarchaud.estats.view.RequestPositionFragment"
+        android:label="@string/requestPositionFragmentLabel"
+        tools:layout="@layout/request_position_fragment">
+        <action
+            android:id="@+id/action_requestPositionFragment_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/requestPositionFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.amarchaud.estats.view.MainFragment"
+        android:label="main_fragment"
+        tools:layout="@layout/main_fragment" />
 </navigation>
