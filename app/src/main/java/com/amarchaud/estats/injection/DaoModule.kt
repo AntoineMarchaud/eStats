@@ -1,6 +1,7 @@
 package com.amarchaud.estats.injection
 
 import android.content.Context
+import androidx.room.Database
 import androidx.room.Room
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.database.AppDb

@@ -101,8 +101,13 @@ class PositionService : Service() {
 
             Log.d(TAG, "New Location")
             for (location in locationResult.locations) {
-                Log.d(TAG, "Location : $location")
+
                 Log.d(TAG, "Location : ${location.latitude} - ${location.longitude}")
+
+                myDao.getBetterLocation(location.latitude, location.longitude)?.let {
+                    Log.d(TAG, "Find a location to update in DB : ${it.name}")
+                    myDao.incrementAllDurations(it.id)
+                }
             }
         }
     }
