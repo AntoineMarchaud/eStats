@@ -3,6 +3,9 @@
     <!-- Fragment Labels -->
     <string name="splashFragmentLabel">SplashScreen</string>
     <string name="requestPositionFragmentLabel">Need permission</string>
+    <string name="currentPositionLabel">Current position</string>
+    <string name="currentLatitudeLabel">Latitude</string>
+    <string name="currentLongitudeLabel">Longitude</string>
     <!-- Texts -->
     <string name="permission_explain">This app is using gps permission to work. Please authorize</string>
     <string name="askPermission">Ask location permission</string>

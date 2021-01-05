@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'kotlin-android-extensions'
 }
 
 android {
@@ -84,12 +85,18 @@ dependencies {
     // Hilt
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
+    // Inject ViewModel objects with Hilt (@ViewModelInject)
+    implementation 'androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha02'
+    kapt 'androidx.hilt:hilt-compiler:1.0.0-alpha02'
 
     // dexter (permission)
     implementation 'com.karumi:dexter:6.2.2'
 
     // for GPS location
     implementation 'com.google.android.gms:play-services-location:17.1.0'
+
+    // Map opensource
+    implementation 'org.osmdroid:osmdroid-android:6.1.8'
 }
 
 apply plugin: 'dagger.hilt.android.plugin'

@@ -10,22 +10,36 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.amarchaud.estats.model.database.AppDao
+import com.amarchaud.estats.model.entity.LocationInfo
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.schedulers.Schedulers
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class PositionService : Service() {
 
-    @Inject
-    lateinit var myDao: AppDao
-
     companion object {
         const val TAG = "PositionService"
         const val CHANNEL_ID = "channelIdService"
         const val UPDATE_TIME = 1000L // in milli
     }
+
+    @Inject
+    lateinit var myDao: AppDao
+
+    private lateinit var mLocationRequest: LocationRequest
+    private lateinit var mFusedLocationClient: FusedLocationProviderClient
+
+    // ***************** Values for Clients ******************************* //
+    var matchingLocation : LocationInfo? = null
+        private set
+
+    var currentLocation : android.location.Location? = null
+        private set
+    // ***************** Values for Clients end *************************** //
 
     /**
      * Manage Binding with Client
@@ -92,27 +106,36 @@ class PositionService : Service() {
     }
 
 
-    private lateinit var mLocationRequest: LocationRequest
-    private lateinit var mFusedLocationClient: FusedLocationProviderClient
-
-
     private var mLocationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
 
             Log.d(TAG, "New Location")
             for (location in locationResult.locations) {
 
-                Log.d(TAG, "Location : ${location.latitude} - ${location.longitude}")
+                // update currentLocation for client side
+                currentLocation = location
 
-                myDao.getBetterLocation(location.latitude, location.longitude)?.let {
-                    Log.d(TAG, "Find a location to update in DB : ${it.name}")
-                    myDao.incrementAllDurations(it.id)
-                }
+                Log.d(TAG, "My Location : ${location.latitude} - ${location.longitude}")
+
+                myDao.getBetterLocation(location.latitude, location.longitude)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe {
+
+                        if (it.id > 0) {
+                            Log.d(TAG, "Matching Location : ${it.name}")
+
+                            // update matchingLocation for client side
+                            matchingLocation = it
+
+                            myDao.incrementAllDurations(it.id)
+                        }
+                    }
             }
         }
-    }
 
-    private fun createFusedLocation() {
+        private fun createFusedLocation() {
 
+        }
     }
 }
