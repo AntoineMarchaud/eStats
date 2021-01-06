@@ -3,11 +3,12 @@ package com.amarchaud.estats.model.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import javax.annotation.Nullable
 
 @Entity(tableName = "Locations")
 data class LocationInfo(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = -1,
-    @ColumnInfo(name = "name") val name: String = "",
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") @Nullable val id: Int? = null,
+    @ColumnInfo(name = "name") @Nullable val name: String? = null,
     @ColumnInfo(name = "delta") val delta: Int = 7,
     @ColumnInfo(name = "lat") val lat: Double = 0.0,
     @ColumnInfo(name = "lon") val lon: Double = 0.0,

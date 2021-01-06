@@ -16,4 +16,8 @@
     <!-- Shared Pref -->
     <string name="globalPref">globalPref</string>
     <string name="isFirstLaunch">isFirstLaunch</string>
+    <!-- custom popup -->
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
+    <string name="no">No</string>
 </resources>

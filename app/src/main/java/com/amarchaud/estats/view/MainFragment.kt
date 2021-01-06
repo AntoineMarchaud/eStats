@@ -1,5 +1,6 @@
 package com.amarchaud.estats.view
 
+import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +12,7 @@ import androidx.fragment.app.viewModels
 import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.MainFragmentBinding
+import com.amarchaud.estats.popup.CurrentLocationPopup
 import com.amarchaud.estats.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.main_fragment.*
@@ -23,7 +25,7 @@ import org.osmdroid.views.overlay.Polygon
 
 
 @AndroidEntryPoint
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListener {
 
     private var isFABOpen : Boolean = false
     private lateinit var binding: MainFragmentBinding
@@ -49,12 +51,13 @@ class MainFragment : Fragment() {
         // map default config
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
         mapView.setTileSource(TileSourceFactory.MAPNIK)
-        mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
-        //mapView.setMultiTouchControls(true)
+        //mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
+        mapView.setMultiTouchControls(true)
         val mapController = mapView.controller
         mapController.setZoom(15.0)
         myPositionMarker = Marker(mapView)
 
+        // update current geoloc
         viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
 
             // update value
@@ -75,14 +78,13 @@ class MainFragment : Fragment() {
             }
         })
 
-
+        // update when there are new positions to display
         viewModel.locations.observe(viewLifecycleOwner, { location ->
             location.forEach {
                 val oneMarker: Marker = Marker(mapView)
                 oneMarker.position = GeoPoint(it.lat, it.lon)
                 oneMarker.title = it.name
-                //oneMarker.icon = ResourcesCompat.getDrawable(resources, R.drawable.bonuspack_bubble, null)
-                oneMarker.setTextIcon("text icon ?")
+                oneMarker.setTextIcon(it.name) // displayed on screen
                 mapView.overlays.add(oneMarker)
 
                 // todo
@@ -97,6 +99,13 @@ class MainFragment : Fragment() {
                 mapView.overlayManager.add(p)
                 mapView.invalidate()
             }
+        })
+
+        // just display popup
+        viewModel.popupAddCurrentPosition.observe(viewLifecycleOwner, {location ->
+            val fragmentManager = requireActivity().supportFragmentManager
+            val customPopup = CurrentLocationPopup(location, this)
+            customPopup.show(fragmentManager, "add new position")
         })
 
         mainFloatingActionButton.setOnClickListener {
@@ -131,5 +140,20 @@ class MainFragment : Fragment() {
         mainFloatingActionButton.animate().rotation(-45f)
         addMyPositionActionButton.animate().translationY(0.0f)
         addCustomPositionActionButton.animate().translationY(0.0f)
+    }
+
+    /**
+     * Callbacks of Popup
+     */
+    override fun onCurrentLocationDialogPositiveClick(
+        currentLocation: Location,
+        nameChoosen: String
+    ) {
+        viewModel.onCurrentLocationDialogPositiveClick(currentLocation, nameChoosen)
+        closeFABMenu()
+    }
+
+    override fun onCurrentLocationDialogListenerNegativeClick() {
+        closeFABMenu()
     }
 }

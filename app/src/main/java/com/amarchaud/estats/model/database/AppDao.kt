@@ -20,7 +20,7 @@ interface AppDao {
     }
 
     @Insert
-    fun insertUser(locationInfo: LocationInfo): Completable
+    fun insertLocationInfo(locationInfo: LocationInfo): Completable
 
     @Update
     fun update(locationInfo: LocationInfo): Completable
@@ -60,7 +60,6 @@ interface AppDao {
     /**
      * Find the closest location from my position
      */
-    @RawQuery
     fun getClosestLocation(latitude: Double, longitude: Double): Flowable<LocationInfo> {
 
         return getAllLocations()
@@ -83,7 +82,6 @@ interface AppDao {
     /**
      * Find all location where I am inside (generally only one)
      */
-    @RawQuery
     fun getInsideLocations(latitude: Double, longitude: Double): Flowable<List<LocationInfo>> {
 
         return getAllLocations()
@@ -99,7 +97,6 @@ interface AppDao {
     /**
      * Find the correction location
      */
-    @RawQuery
     fun getBetterLocation(latitude: Double, longitude: Double): Flowable<LocationInfo> {
 
         return getInsideLocations(latitude, longitude)

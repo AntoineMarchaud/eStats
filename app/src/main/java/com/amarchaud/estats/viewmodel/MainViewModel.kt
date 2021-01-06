@@ -12,31 +12,40 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.databinding.Bindable
+import androidx.fragment.app.DialogFragment
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
 import com.amarchaud.estats.BR
 import com.amarchaud.estats.base.BaseViewModel
+import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
+import com.amarchaud.estats.popup.CurrentLocationPopup
 import com.amarchaud.estats.service.PositionService
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.schedulers.Schedulers
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 
 class MainViewModel @ViewModelInject constructor(
     val app: Application,
-    myDao: AppDao // injected by hilt
+    private val myDao: AppDao // injected by hilt
 ) : BaseViewModel(app) {
 
     companion object {
         const val TAG = "MainViewModel"
         const val DATE_FORMAT = "dd-MM-yyyy HH:mm:ss"
+
+        enum class typeItem {
+            ALL_INSERTED,
+            ITEM_INSERTED,
+            ITEM_MODIFIED,
+            ITEM_DELETED
+        }
     }
 
     private var mService: PositionService? = null
@@ -52,6 +61,7 @@ class MainViewModel @ViewModelInject constructor(
     // LiveData properties ***************************************************************
     val myGeoLoc: MutableLiveData<Location> = MutableLiveData()
     val locations: MutableLiveData<List<LocationInfo>> = MutableLiveData()
+    val popupAddCurrentPosition: SingleLiveEvent<Location> = SingleLiveEvent()
 
     private var mHandler: Handler? = null
     private var refreshDatasRunnable: Runnable = object : Runnable {
@@ -94,6 +104,9 @@ class MainViewModel @ViewModelInject constructor(
             app.startService(intent)
         }
 
+        /**
+         *
+         */
         myDao.getAllLocations()
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
@@ -139,11 +152,48 @@ class MainViewModel @ViewModelInject constructor(
         }
     }
 
+    /**
+     * Call when user want to add a custom position
+     */
     fun onAddCustomPosition(v: View) {
         println("onAddCustomPosition")
     }
 
+    /**
+     * Called when user want to add his current position
+     */
     fun onAddCurrentPosition(v: View) {
-        println("onAddCurrentPosition")
+
+        if (bound) {
+            mService?.let {
+                it.currentLocation?.let { location ->
+                    // just say to Fragment to display
+                    popupAddCurrentPosition.postValue(location)
+                }
+            }
+        }
+    }
+
+    /**
+     * Callback of pop-up
+     */
+    fun onCurrentLocationDialogPositiveClick(
+        currentLocation: Location,
+        nameChoosen: String
+    ) {
+        // add to Database
+        myDao.insertLocationInfo(
+            LocationInfo(
+                name = nameChoosen,
+                lat = currentLocation.latitude,
+                lon = currentLocation.longitude
+            )
+        )
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                // refresh list once done !
+                // todo
+            }
     }
 }

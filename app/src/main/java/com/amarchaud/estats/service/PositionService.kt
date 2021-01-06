@@ -121,8 +121,7 @@ class PositionService : Service() {
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe {
-
-                        if (it.id > 0) {
+                        if (it.id != null) {
                             Log.d(TAG, "Matching Location : ${it.name}")
 
                             // update matchingLocation for client side
