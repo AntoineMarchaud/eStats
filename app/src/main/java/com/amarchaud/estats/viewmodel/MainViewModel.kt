@@ -12,18 +12,20 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.databinding.Bindable
-import androidx.fragment.app.DialogFragment
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.amarchaud.estats.BR
 import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
-import com.amarchaud.estats.popup.CurrentLocationPopup
 import com.amarchaud.estats.service.PositionService
+import com.amarchaud.estats.model.OneLocationModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
@@ -41,7 +43,6 @@ class MainViewModel @ViewModelInject constructor(
         const val DATE_FORMAT = "dd-MM-yyyy HH:mm:ss"
 
         enum class typeItem {
-            ALL_INSERTED,
             ITEM_INSERTED,
             ITEM_MODIFIED,
             ITEM_DELETED
@@ -56,11 +57,14 @@ class MainViewModel @ViewModelInject constructor(
     var currentDate: String? = null
 
     @Bindable
-    var matchingLocation: LocationInfo? = null
+    var matchingLocation: OneLocationModel? = null
 
     // LiveData properties ***************************************************************
     val myGeoLoc: MutableLiveData<Location> = MutableLiveData()
-    val locations: MutableLiveData<List<LocationInfo>> = MutableLiveData()
+
+    private var listOfLocation: MutableList<OneLocationModel> = mutableListOf()
+    val oneLocation: MutableLiveData<Triple<OneLocationModel, typeItem, Int>> =
+        MutableLiveData()
     val popupAddCurrentPosition: SingleLiveEvent<Location> = SingleLiveEvent()
 
     private var mHandler: Handler? = null
@@ -68,7 +72,6 @@ class MainViewModel @ViewModelInject constructor(
         override fun run() {
             try {
 
-                //Java 8 java.time.Instant
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     currentDate = DateTimeFormatter
                         .ofPattern(DATE_FORMAT)
@@ -83,11 +86,27 @@ class MainViewModel @ViewModelInject constructor(
 
                 if (bound) {
 
-                    mService?.let {
-                        matchingLocation = it.matchingLocation
-                        notifyPropertyChanged(BR.matchingLocation)
+                    mService?.let { positionService ->
+                        positionService.matchingLocation?.let { ml ->
 
-                        myGeoLoc.postValue(it.currentLocation)
+                            // update view
+                            matchingLocation = ml
+                            notifyPropertyChanged(BR.matchingLocation)
+
+                            // ********** Modify Element ****************** //
+                            val pos = listOfLocation.indexOfFirst {
+                                it.locationInfo.id == matchingLocation?.locationInfo?.id
+                            }
+                            oneLocation.postValue(
+                                Triple(
+                                    matchingLocation!!, typeItem.ITEM_MODIFIED, pos
+                                )
+                            )
+                        }
+
+                        if (positionService.currentLocation != null) {
+                            myGeoLoc.postValue(positionService.currentLocation)
+                        }
                     }
                 }
 
@@ -105,14 +124,18 @@ class MainViewModel @ViewModelInject constructor(
         }
 
         /**
-         *
+         * Add all at startup
          */
-        myDao.getAllLocations()
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                locations.postValue(it)
+
+        viewModelScope.launch {
+            myDao.getAllLocationsAndSubLocOnNextCouroutine().collect {
+                if (it == null)
+                    return@collect
+
+                listOfLocation.add(it)
+                oneLocation.value = Triple(it, typeItem.ITEM_INSERTED, listOfLocation.size - 1)
             }
+        }
     }
 
 
@@ -181,19 +204,28 @@ class MainViewModel @ViewModelInject constructor(
         currentLocation: Location,
         nameChoosen: String
     ) {
-        // add to Database
-        myDao.insertLocationInfo(
-            LocationInfo(
-                name = nameChoosen,
-                lat = currentLocation.latitude,
-                lon = currentLocation.longitude
-            )
+        val locationInfoInserted = LocationInfo(
+            name = nameChoosen,
+            lat = currentLocation.latitude,
+            lon = currentLocation.longitude
         )
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                // refresh list once done !
-                // todo
-            }
+
+        // add to Database
+        viewModelScope.launch {
+            myDao.insertLocationInfoCoroutine(locationInfoInserted)
+            val last = myDao.getLastInsertedLocationCoroutine()
+
+            Log.d(TAG, "User add new location ${last.name}")
+            val vm = OneLocationModel(last, mutableListOf())
+            listOfLocation.add(vm)
+            oneLocation.postValue(
+                Triple(
+                    vm,
+                    typeItem.ITEM_INSERTED,
+                    listOfLocation.size - 1
+                )
+            )
+
+        }
     }
 }

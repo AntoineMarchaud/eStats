@@ -1,10 +1,8 @@
 package com.amarchaud.estats.popup
 
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
 import android.text.SpannableStringBuilder
-import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.amarchaud.estats.R
@@ -37,12 +35,12 @@ class CurrentLocationPopup(
             with(inflater.inflate(R.layout.popup_current_location, null)) {
 
                 if(savedInstanceState != null) {
-                    lat.text = savedInstanceState.getString(KEY_LAT)
-                    lon.text = savedInstanceState.getString(KEY_LON)
+                    subLat.text = savedInstanceState.getString(KEY_LAT)
+                    subLon.text = savedInstanceState.getString(KEY_LON)
                     nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME))
                 } else {
-                    lat.text = java.lang.String.valueOf(currentLocation.latitude)
-                    lon.text = java.lang.String.valueOf(currentLocation.longitude)
+                    subLat.text = java.lang.String.valueOf(currentLocation.latitude)
+                    subLon.text = java.lang.String.valueOf(currentLocation.longitude)
                 }
 
                 builder.setView(this)
@@ -65,8 +63,8 @@ class CurrentLocationPopup(
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState.putString(KEY_LAT, lat.text.toString())
-        outState.putString(KEY_LON, lon.text.toString())
+        outState.putString(KEY_LAT, subLat.text.toString())
+        outState.putString(KEY_LON, subLon.text.toString())
         outState.putString(KEY_NAME, nameEditText.text.toString())
     }
 }

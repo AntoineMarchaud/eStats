@@ -28,7 +28,7 @@
             android:text="Latitude :"/>
 
         <TextView
-            android:id="@+id/lat"
+            android:id="@+id/subLat"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:clickable="true"
@@ -52,7 +52,7 @@
             android:text="Longitude :"/>
 
         <TextView
-            android:id="@+id/lon"
+            android:id="@+id/subLon"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="isExpanded"
+            type="boolean" />
+
+        <variable
+            name="LocationInfo"
+            type="com.amarchaud.estats.model.entity.LocationInfo" />
+
+    </data>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="75dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@{LocationInfo.name}" />
+
+        <TextView
+            android:id="@+id/subLat"
+            android:layout_width="75dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/name"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@{String.valueOf(LocationInfo.lat)}" />
+
+        <TextView
+            android:id="@+id/subLon"
+            android:layout_width="75dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/subLat"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@{String.valueOf(LocationInfo.lon)}" />
+
+
+        <TextView
+            android:id="@+id/subDuration"
+            android:layout_width="75dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/subLon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@{String.valueOf(LocationInfo.duration_day)}" />
+
+        <ImageView
+            android:id="@+id/icExpand"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="8dp"
+            android:rotation="@{isExpanded ? 0f : 180f}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_arrow_up_64" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

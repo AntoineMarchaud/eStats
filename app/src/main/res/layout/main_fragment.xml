@@ -91,7 +91,7 @@
 
                     <TextView
                         android:id="@+id/currentArea"
-                        android:text="@{MainViewModel.matchingLocation.name}" />
+                        android:text="@{MainViewModel.matchingLocation.locationInfo.name}" />
 
                 </TableRow>
 
@@ -102,7 +102,7 @@
 
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/items"
+            android:id="@+id/recyclerviewItems"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"

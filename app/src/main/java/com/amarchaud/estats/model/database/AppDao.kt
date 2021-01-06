@@ -1,116 +1,107 @@
 package com.amarchaud.estats.model.database
 
-import androidx.lifecycle.LiveData
+import androidx.compose.runtime.emit
 import androidx.room.*
+import com.amarchaud.estats.model.OneLocationModel
 import com.amarchaud.estats.model.entity.LocationInfo
+import com.amarchaud.estats.model.entity.LocationInfoSub
 import com.amarchaud.estats.utils.Distance
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.BackpressureStrategy
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.coroutines.flow.flow
 
 
 @Dao
 interface AppDao {
 
-    enum class Type {
-        DAY, WEEK, MONTH, YEAR, ALL_TIME
+    /// KOROUTINES !
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLocationInfoCoroutine(locationInfo: LocationInfo)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updateCoroutine(locationInfo: LocationInfo)
+
+    @Query("SELECT * from Locations ORDER BY id ASC")
+    suspend fun getAllLocationsCoroutine(): List<LocationInfo>
+
+    @Query("SELECT * from SubLocations WHERE idMain==:id ORDER BY idMain ASC")
+    suspend fun getAllSubLocationsOfCoroutine(id: Int): List<LocationInfoSub>
+
+    @Query("SELECT * from Locations WHERE id==:id LIMIT 1")
+    suspend fun getOneLocationCoroutine(id: Int): LocationInfo
+
+    private suspend fun makeLocationModel(locationInfo: LocationInfo?): OneLocationModel? {
+        if (locationInfo == null)
+            return null
+
+        return OneLocationModel(locationInfo, getAllSubLocationsOfCoroutine(locationInfo.id))
     }
 
-    @Insert
-    fun insertLocationInfo(locationInfo: LocationInfo): Completable
+    suspend fun getOneLocationAndSubLocCoroutine(id: Int): OneLocationModel? {
+        val l: LocationInfo = getOneLocationCoroutine(id)
+        return makeLocationModel(l)
+    }
 
-    @Update
-    fun update(locationInfo: LocationInfo): Completable
-
-    @Query("UPDATE locations SET duration_day = (duration_day + 1) AND duration_week = (duration_week + 1) AND duration_month = (duration_month + 1) AND duration_year = (duration_year + 1 ) AND duration_all_time = (duration_all_time + 1) WHERE id == :id")
-    fun incrementAllDurations(id: Int): Completable
-
-    @Query("UPDATE locations SET duration_day = 0 WHERE id == :id")
-    fun resetDayDuration(id: Int): Completable
-
-    @Query("UPDATE locations SET duration_week = 0 WHERE id == :id")
-    fun resetWeekDuration(id: Int): Completable
-
-    @Query("UPDATE locations SET duration_month = 0 WHERE id == :id")
-    fun resetMonthDuration(id: Int): Completable
-
-    @Query("UPDATE locations SET duration_year = 0 WHERE id == :id")
-    fun resetYearDuration(id: Int): Completable
-
-    @Query("UPDATE locations SET duration_all_time = 0 WHERE id == :id")
-    fun resetAllTimeDuration(id: Int): Completable
-
-    @RawQuery
-    fun resetTimeByTime(id: Int, type: Type): Completable {
-        return when (type) {
-            Type.DAY -> resetDayDuration(id)
-            Type.WEEK -> resetWeekDuration(id)
-            Type.MONTH -> resetMonthDuration(id)
-            Type.YEAR -> resetYearDuration(id)
-            Type.ALL_TIME -> resetAllTimeDuration(id)
+    suspend fun getAllLocationsAndSubLocOnNextCouroutine() = flow {
+        getAllLocationsCoroutine().forEach {
+            emit(makeLocationModel(it))
         }
     }
 
-    @Query("SELECT * from Locations ORDER BY id ASC")
-    fun getAllLocations(): Flowable<List<LocationInfo>>
+    /**
+     * Retourne le dernier element inséré
+     */
+    suspend fun getLastInsertedLocationCoroutine(): LocationInfo {
+        return getAllLocationsCoroutine().last()
+    }
+
 
     /**
      * Find the closest location from my position
      */
-    fun getClosestLocation(latitude: Double, longitude: Double): Flowable<LocationInfo> {
-
-        return getAllLocations()
-            .flatMap { locationInfos: List<LocationInfo> ->
-
-                val min = locationInfos.minByOrNull {
-                    Distance.measure(it.lat, it.lon, latitude, longitude)
-                }
-
-                if (min == null) {
-                    Flowable.just(LocationInfo())
-                } else {
-                    Flowable.just(min)
-                }
-            }
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
+    private suspend fun getClosestLocationCoroutine(
+        latitude: Double,
+        longitude: Double
+    ): LocationInfo? {
+        return getAllLocationsCoroutine().minByOrNull {
+            Distance.measure(
+                it.lat,
+                it.lon,
+                latitude,
+                longitude
+            )
+        }
     }
 
     /**
      * Find all location where I am inside (generally only one)
      */
-    fun getInsideLocations(latitude: Double, longitude: Double): Flowable<List<LocationInfo>> {
-
-        return getAllLocations()
-            .flatMap { locationInfos: List<LocationInfo> ->
-                Flowable.just(locationInfos.filter {
-                    Distance.measure(it.lat, it.lon, latitude, longitude) < it.delta
-                })
-            }
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
+    private suspend fun getInsideLocationsCoroutine(
+        latitude: Double,
+        longitude: Double
+    ): List<LocationInfo> {
+        return getAllLocationsCoroutine().mapNotNull {
+            if (Distance.measure(it.lat, it.lon, latitude, longitude) < it.delta)
+                it
+            else
+                null
+        }
     }
 
     /**
      * Find the correction location
      */
-    fun getBetterLocation(latitude: Double, longitude: Double): Flowable<LocationInfo> {
-
-        return getInsideLocations(latitude, longitude)
-            .flatMap { locationInfos: List<LocationInfo> ->
-                val min = locationInfos.minByOrNull {
-                    Distance.measure(it.lat, it.lon, latitude, longitude)
-                }
-                if (min == null) {
-                    Flowable.just(LocationInfo())
-                } else {
-                    Flowable.just(min)
-                }
-            }
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
+    suspend fun getBetterLocationCoroutine(
+        latitude: Double,
+        longitude: Double
+    ): OneLocationModel? {
+        return makeLocationModel(
+            getInsideLocationsCoroutine(latitude, longitude).minByOrNull {
+                Distance.measure(it.lat, it.lon, latitude, longitude)
+            })
     }
 }

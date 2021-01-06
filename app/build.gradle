@@ -97,6 +97,9 @@ dependencies {
 
     // Map opensource
     implementation 'org.osmdroid:osmdroid-android:6.1.8'
+
+    // recyclerView with concat
+    implementation "androidx.recyclerview:recyclerview:1.2.0-beta01"
 }
 
 apply plugin: 'dagger.hilt.android.plugin'

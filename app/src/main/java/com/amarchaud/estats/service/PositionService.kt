@@ -9,12 +9,16 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import com.amarchaud.estats.model.OneLocationModel
 import com.amarchaud.estats.model.database.AppDao
-import com.amarchaud.estats.model.entity.LocationInfo
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -34,10 +38,10 @@ class PositionService : Service() {
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
     // ***************** Values for Clients ******************************* //
-    var matchingLocation : LocationInfo? = null
+    var matchingLocation: OneLocationModel? = null
         private set
 
-    var currentLocation : android.location.Location? = null
+    var currentLocation: android.location.Location? = null
         private set
     // ***************** Values for Clients end *************************** //
 
@@ -117,19 +121,17 @@ class PositionService : Service() {
 
                 Log.d(TAG, "My Location : ${location.latitude} - ${location.longitude}")
 
-                myDao.getBetterLocation(location.latitude, location.longitude)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe {
-                        if (it.id != null) {
-                            Log.d(TAG, "Matching Location : ${it.name}")
 
-                            // update matchingLocation for client side
-                            matchingLocation = it
+                GlobalScope.launch {
+                    val bestLoc = myDao.getBetterLocationCoroutine(location.latitude, location.longitude)
+                    bestLoc?.let {
+                        it.locationInfo.duration_day++
+                        myDao.updateCoroutine(it.locationInfo)
 
-                            myDao.incrementAllDurations(it.id)
-                        }
+                        Log.d(TAG, "Matching Location : ${it.locationInfo.name}")
+                        matchingLocation = it
                     }
+                }
             }
         }
 

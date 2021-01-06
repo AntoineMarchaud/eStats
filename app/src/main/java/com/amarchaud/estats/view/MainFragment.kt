@@ -19,20 +19,32 @@ import kotlinx.android.synthetic.main.main_fragment.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polygon
+import androidx.recyclerview.widget.ConcatAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.amarchaud.estats.adapter.ExpandableItemAnimator
+import com.amarchaud.estats.adapter.ItemsExpandableAdapter
+import com.amarchaud.estats.fake.DataProvider
 
 
 @AndroidEntryPoint
 class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListener {
 
-    private var isFABOpen : Boolean = false
+    private var isFABOpen: Boolean = false
     private lateinit var binding: MainFragmentBinding
-    private val viewModel: MainViewModel by viewModels() // hilt
+
+    private val viewModel: MainViewModel by viewModels() // replace ViewModelProvider
 
     // Marker of my position
     private var myPositionMarker: Marker? = null
+
+    // recyclerView
+    private val concatAdapterConfig by lazy {
+        ConcatAdapter.Config.Builder()
+            .setIsolateViewTypes(false)
+            .build()
+    }
+    var concatAdapter: ConcatAdapter = ConcatAdapter(concatAdapterConfig)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,6 +59,15 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.mainViewModel = viewModel
+        binding.lifecycleOwner = this
+
+        with(binding.recyclerviewItems) {
+            layoutManager =
+                LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+            itemAnimator = ExpandableItemAnimator()
+            adapter = concatAdapter
+        }
+
 
         // map default config
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
@@ -78,40 +99,71 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             }
         })
 
-        // update when there are new positions to display
-        viewModel.locations.observe(viewLifecycleOwner, { location ->
-            location.forEach {
-                val oneMarker: Marker = Marker(mapView)
-                oneMarker.position = GeoPoint(it.lat, it.lon)
-                oneMarker.title = it.name
-                oneMarker.setTextIcon(it.name) // displayed on screen
-                mapView.overlays.add(oneMarker)
+        viewModel.oneLocation.observe(viewLifecycleOwner, { location ->
 
-                // todo
-                // draw circle around the marker
-                val circle: List<GeoPoint> =
-                    Polygon.pointsAsCircle(oneMarker.position, it.delta.toDouble())
-                val p = Polygon(mapView)
-                p.points = circle
-                p.title = "A circle"
-                val fillPaint = p.fillPaint
-                fillPaint.color = 0xFF0000
-                mapView.overlayManager.add(p)
-                mapView.invalidate()
+            // principal
+            with(location.first) {
+
+                with(this.locationInfo) {
+                    val oneMarker: Marker = Marker(mapView)
+                    oneMarker.position = GeoPoint(lat, lon)
+                    oneMarker.title = name
+                    oneMarker.setTextIcon(name) // displayed on screen
+                    mapView.overlays.add(oneMarker)
+                }
+
+                // secondaire
+                with(this.subLocation) {
+                    forEach {
+                        // todo
+                    }
+                }
             }
+
+            // update recycler view
+            when (location.second) {
+                MainViewModel.Companion.typeItem.ITEM_INSERTED -> {
+                    concatAdapter.addAdapter(ItemsExpandableAdapter(location.first))
+                    concatAdapter.notifyItemInserted(location.third)
+                }
+                MainViewModel.Companion.typeItem.ITEM_MODIFIED -> {
+                    (concatAdapter.adapters[location.third] as ItemsExpandableAdapter).item = location.first
+                    concatAdapter.notifyItemChanged(location.third)
+                }
+                MainViewModel.Companion.typeItem.ITEM_DELETED -> {
+                    concatAdapter.removeAdapter(concatAdapter.adapters[location.third])
+                    concatAdapter.notifyItemRemoved(location.third)
+                }
+            }
+
+
+            // todo
+            /*
+            // draw circle around the marker
+            val circle: List<GeoPoint> =
+                Polygon.pointsAsCircle(oneMarker.position, it.delta.toDouble())
+            val p = Polygon(mapView)
+            p.points = circle
+            p.title = "A circle"
+            val fillPaint = p.fillPaint
+            fillPaint.color = 0xFF0000
+            mapView.overlayManager.add(p)
+            mapView.invalidate()*/
+
+
         })
 
         // just display popup
-        viewModel.popupAddCurrentPosition.observe(viewLifecycleOwner, {location ->
+        viewModel.popupAddCurrentPosition.observe(viewLifecycleOwner, { location ->
             val fragmentManager = requireActivity().supportFragmentManager
             val customPopup = CurrentLocationPopup(location, this)
             customPopup.show(fragmentManager, "add new position")
         })
 
         mainFloatingActionButton.setOnClickListener {
-            if(!isFABOpen){
+            if (!isFABOpen) {
                 showFABMenu();
-            }else{
+            } else {
                 closeFABMenu();
             }
         }
@@ -131,8 +183,10 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
     private fun showFABMenu() {
         isFABOpen = true
         mainFloatingActionButton.animate().rotation(45f)
-        addMyPositionActionButton.animate().translationY(-resources.getDimension(R.dimen.floatingTranslation1))
-        addCustomPositionActionButton.animate().translationY(-resources.getDimension(R.dimen.floatingTranslation2))
+        addMyPositionActionButton.animate()
+            .translationY(-resources.getDimension(R.dimen.floatingTranslation1))
+        addCustomPositionActionButton.animate()
+            .translationY(-resources.getDimension(R.dimen.floatingTranslation2))
     }
 
     private fun closeFABMenu() {
