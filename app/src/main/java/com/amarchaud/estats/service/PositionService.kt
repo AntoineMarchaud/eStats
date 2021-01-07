@@ -1,16 +1,20 @@
 package com.amarchaud.estats.service
 
 import android.Manifest
+import android.app.Application
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Binder
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import com.amarchaud.estats.model.entity.LocationWithSubs
+import com.amarchaud.estats.R
 import com.amarchaud.estats.model.database.AppDao
+import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
@@ -29,6 +33,11 @@ class PositionService : Service() {
 
     @Inject
     lateinit var myDao: AppDao
+
+    @Inject
+    lateinit var myApp: Application
+
+    private lateinit var sharedPref: SharedPreferences
 
     private lateinit var mLocationRequest: LocationRequest
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
@@ -68,6 +77,11 @@ class PositionService : Service() {
         super.onCreate()
         Log.d(TAG, "onCreate")
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        sharedPref = myApp.getSharedPreferences(
+            getString(com.amarchaud.estats.R.string.shared_pref),
+            Context.MODE_PRIVATE
+        )
 
 
         if (ActivityCompat.checkSelfPermission(
@@ -119,13 +133,31 @@ class PositionService : Service() {
 
 
                 GlobalScope.launch {
-                    val bestLoc = myDao.getBetterLocationWithSubs(location.latitude, location.longitude)
+                    val bestLoc = myDao.getBetterLocationWithSubs(
+                        location.latitude,
+                        location.longitude
+                    )
                     bestLoc?.let {
-                        it.locationInfo.duration_day++
+
+                        val lastSave = sharedPref.getLong(
+                            getString(R.string.saved_current_time_ms),
+                            System.currentTimeMillis()
+                        )
+                        val inc = System.currentTimeMillis() - lastSave
+
+                        it.locationInfo.duration_day += inc
                         myDao.update(it.locationInfo)
 
                         Log.d(TAG, "Matching Location : ${it.locationInfo.name}")
                         matchingLocation = it
+
+                        with(sharedPref.edit()) {
+                            putLong(
+                                getString(R.string.saved_current_time_ms),
+                                System.currentTimeMillis()
+                            )
+                            apply()
+                        }
                     }
                 }
             }

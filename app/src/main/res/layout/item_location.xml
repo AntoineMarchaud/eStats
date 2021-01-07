@@ -39,20 +39,20 @@
             android:layout_width="75dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:text="@{String.valueOf(LocationInfo.lat)}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/name"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="@{String.valueOf(LocationInfo.lat)}" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/subLon"
             android:layout_width="75dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:text="@{String.valueOf(LocationInfo.lon)}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/subLat"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="@{String.valueOf(LocationInfo.lon)}" />
+            app:layout_constraintTop_toTopOf="parent" />
 
 
         <TextView
@@ -60,10 +60,10 @@
             android:layout_width="75dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            app:onLongMsToTime="@{LocationInfo.duration_day}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/subLon"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="@{String.valueOf(LocationInfo.duration_day)}" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/icExpand"

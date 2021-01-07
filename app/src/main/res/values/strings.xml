@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">eStats</string>
+    <string name="shared_pref">shared_pref</string>
+    <string name="saved_current_time_ms">saved_current_time_ms</string>
     <!-- Fragment Labels -->
     <string name="splashFragmentLabel">SplashScreen</string>
     <string name="requestPositionFragmentLabel">Need permission</string>
