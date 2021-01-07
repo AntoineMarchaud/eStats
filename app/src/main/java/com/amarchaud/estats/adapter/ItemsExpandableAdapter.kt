@@ -9,11 +9,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.ItemLocationBinding
 import com.amarchaud.estats.databinding.ItemSubLocationBinding
-import com.amarchaud.estats.model.OneLocationModel
+import com.amarchaud.estats.model.entity.LocationWithSubs
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
 
-class ItemsExpandableAdapter(var item: OneLocationModel) :
+class ItemsExpandableAdapter(var item: LocationWithSubs) :
     RecyclerView.Adapter<ItemsExpandableAdapter.ViewHolder>() {
 
 

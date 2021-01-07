@@ -2,6 +2,8 @@ package com.amarchaud.estats.model.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
 import javax.annotation.Nullable
 

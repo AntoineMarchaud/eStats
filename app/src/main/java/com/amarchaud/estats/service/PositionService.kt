@@ -9,15 +9,11 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import com.amarchaud.estats.model.OneLocationModel
+import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.model.database.AppDao
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,7 +34,7 @@ class PositionService : Service() {
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
     // ***************** Values for Clients ******************************* //
-    var matchingLocation: OneLocationModel? = null
+    var matchingLocation: LocationWithSubs? = null
         private set
 
     var currentLocation: android.location.Location? = null
@@ -123,10 +119,10 @@ class PositionService : Service() {
 
 
                 GlobalScope.launch {
-                    val bestLoc = myDao.getBetterLocationCoroutine(location.latitude, location.longitude)
+                    val bestLoc = myDao.getBetterLocationWithSubs(location.latitude, location.longitude)
                     bestLoc?.let {
                         it.locationInfo.duration_day++
-                        myDao.updateCoroutine(it.locationInfo)
+                        myDao.update(it.locationInfo)
 
                         Log.d(TAG, "Matching Location : ${it.locationInfo.name}")
                         matchingLocation = it

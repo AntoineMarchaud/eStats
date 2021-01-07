@@ -21,10 +21,7 @@ import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.service.PositionService
-import com.amarchaud.estats.model.OneLocationModel
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.schedulers.Schedulers
-import kotlinx.coroutines.flow.collect
+import com.amarchaud.estats.model.entity.LocationWithSubs
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -57,13 +54,13 @@ class MainViewModel @ViewModelInject constructor(
     var currentDate: String? = null
 
     @Bindable
-    var matchingLocation: OneLocationModel? = null
+    var matchingLocation: LocationWithSubs? = null
 
     // LiveData properties ***************************************************************
     val myGeoLoc: MutableLiveData<Location> = MutableLiveData()
 
-    private var listOfLocation: MutableList<OneLocationModel> = mutableListOf()
-    val oneLocation: MutableLiveData<Triple<OneLocationModel, typeItem, Int>> =
+    private var listOfLocation: MutableList<LocationWithSubs> = mutableListOf()
+    val oneLocation: MutableLiveData<Triple<LocationWithSubs, typeItem, Int>> =
         MutableLiveData()
     val popupAddCurrentPosition: SingleLiveEvent<Location> = SingleLiveEvent()
 
@@ -87,16 +84,18 @@ class MainViewModel @ViewModelInject constructor(
                 if (bound) {
 
                     mService?.let { positionService ->
+
+                        matchingLocation = positionService.matchingLocation
+                        notifyPropertyChanged(BR.matchingLocation)
+
+                        // si on trouve un matching location, il faut updater la liste
                         positionService.matchingLocation?.let { ml ->
 
-                            // update view
-                            matchingLocation = ml
-                            notifyPropertyChanged(BR.matchingLocation)
-
-                            // ********** Modify Element ****************** //
                             val pos = listOfLocation.indexOfFirst {
                                 it.locationInfo.id == matchingLocation?.locationInfo?.id
                             }
+
+                            Log.d(TAG, "modify location $matchingLocation at position $pos")
                             oneLocation.postValue(
                                 Triple(
                                     matchingLocation!!, typeItem.ITEM_MODIFIED, pos
@@ -126,14 +125,11 @@ class MainViewModel @ViewModelInject constructor(
         /**
          * Add all at startup
          */
-
         viewModelScope.launch {
-            myDao.getAllLocationsAndSubLocOnNextCouroutine().collect {
-                if (it == null)
-                    return@collect
-
+            myDao.getAllLocationsWithSubs().forEach {
+                Log.d(TAG, "Init Add location : $it")
                 listOfLocation.add(it)
-                oneLocation.value = Triple(it, typeItem.ITEM_INSERTED, listOfLocation.size - 1)
+                oneLocation.value = (Triple(it, typeItem.ITEM_INSERTED, listOfLocation.size - 1))
             }
         }
     }
@@ -212,20 +208,19 @@ class MainViewModel @ViewModelInject constructor(
 
         // add to Database
         viewModelScope.launch {
-            myDao.insertLocationInfoCoroutine(locationInfoInserted)
-            val last = myDao.getLastInsertedLocationCoroutine()
+            myDao.insert(locationInfoInserted)
 
-            Log.d(TAG, "User add new location ${last.name}")
-            val vm = OneLocationModel(last, mutableListOf())
-            listOfLocation.add(vm)
+            val ls  = myDao.getLastInsertedLocationWithSubs()
+            Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
+
+            listOfLocation.add(ls)
             oneLocation.postValue(
                 Triple(
-                    vm,
+                    ls,
                     typeItem.ITEM_INSERTED,
                     listOfLocation.size - 1
                 )
             )
-
         }
     }
 }
