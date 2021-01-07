@@ -20,8 +20,8 @@ import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
-import com.amarchaud.estats.service.PositionService
 import com.amarchaud.estats.model.entity.LocationWithSubs
+import com.amarchaud.estats.service.PositionService
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -32,7 +32,7 @@ import java.util.*
 
 class MainViewModel @ViewModelInject constructor(
     val app: Application,
-    private val myDao: AppDao // injected by hilt
+    private val myDao: AppDao, // injected by hilt
 ) : BaseViewModel(app) {
 
     companion object {

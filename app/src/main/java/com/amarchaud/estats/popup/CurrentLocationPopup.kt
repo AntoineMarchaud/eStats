@@ -22,7 +22,11 @@ class CurrentLocationPopup(
     }
 
     interface CurrentLocationDialogListener {
-        fun onCurrentLocationDialogPositiveClick(currentLocation: android.location.Location, nameChoosen: String)
+        fun onCurrentLocationDialogPositiveClick(
+            currentLocation: android.location.Location,
+            nameChoosen: String
+        )
+
         fun onCurrentLocationDialogListenerNegativeClick()
     }
 
@@ -34,24 +38,31 @@ class CurrentLocationPopup(
 
             with(inflater.inflate(R.layout.popup_current_location, null)) {
 
-                if(savedInstanceState != null) {
+                if (savedInstanceState != null) {
                     subLat.text = savedInstanceState.getString(KEY_LAT)
                     subLon.text = savedInstanceState.getString(KEY_LON)
-                    nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME))
+                    nameEditText.text =
+                        SpannableStringBuilder(savedInstanceState.getString(KEY_NAME))
                 } else {
                     subLat.text = java.lang.String.valueOf(currentLocation.latitude)
                     subLon.text = java.lang.String.valueOf(currentLocation.longitude)
                 }
 
-                builder.setView(this)
+                builder
+                    .setTitle(it.getString(R.string.addNewPositionTitle))
+                    .setView(this)
                     .setPositiveButton(R.string.yes) { dialog, id ->
-                        listener.onCurrentLocationDialogPositiveClick(currentLocation, nameEditText.text.toString())
+                        listener.onCurrentLocationDialogPositiveClick(
+                            currentLocation,
+                            nameEditText.text.toString()
+                        )
                         dialog?.dismiss()
                     }
                     .setNegativeButton(R.string.cancel) { dialog, id ->
                         listener.onCurrentLocationDialogListenerNegativeClick()
                         dialog?.cancel()
                     }
+
                 builder.create()
 
             }

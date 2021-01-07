@@ -50,7 +50,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_column="0"
-                        android:text="@string/currentLatitudeLabel" />
+                        android:text="@string/latitudeLabel" />
 
                     <TextView
                         android:id="@+id/currentLatitudeValue"
@@ -67,7 +67,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_column="0"
-                        android:text="@string/currentLongitudeLabel" />
+                        android:text="@string/longitudeLabel" />
 
                     <TextView
                         android:id="@+id/currentLongitudeValue"

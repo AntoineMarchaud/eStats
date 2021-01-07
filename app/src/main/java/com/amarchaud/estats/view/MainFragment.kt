@@ -2,7 +2,6 @@ package com.amarchaud.estats.view
 
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
-import com.amarchaud.estats.adapter.ExpandableHeaderItem
+import com.amarchaud.estats.adapter.LocationInfoItem
 import com.amarchaud.estats.adapter.LocationInfoSubItem
 import com.amarchaud.estats.databinding.MainFragmentBinding
 import com.amarchaud.estats.popup.CurrentLocationPopup
@@ -40,7 +39,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
     // Marker of my position
     private var myPositionMarker: Marker? = null
 
-    val groupAdapter = GroupAdapter<GroupieViewHolder>()
+    private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -126,8 +125,8 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             when (location.second) {
                 MainViewModel.Companion.typeItem.ITEM_INSERTED -> {
 
-                    val expandableHeaderItem = ExpandableHeaderItem(location.first.locationInfo)
-                    val expandableLocationWithSub = ExpandableGroup(expandableHeaderItem)
+                    val header =  LocationInfoItem(this, location.first.locationInfo)
+                    val expandableLocationWithSub = ExpandableGroup(header)
                     location.first.subLocation.forEach {
                         expandableLocationWithSub.add(LocationInfoSubItem(it))
                     }
@@ -135,7 +134,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     groupAdapter.notifyItemInserted(location.third)
                 }
                 MainViewModel.Companion.typeItem.ITEM_MODIFIED -> {
-                    (groupAdapter.getItem(location.third) as ExpandableHeaderItem).locationInfo =
+                    (groupAdapter.getItem(location.third) as LocationInfoItem).locationInfo =
                         location.first.locationInfo
                     groupAdapter.notifyItemChanged(location.third)
                 }

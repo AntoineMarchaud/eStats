@@ -1,13 +1,16 @@
 <resources>
     <string name="app_name">eStats</string>
     <string name="shared_pref">shared_pref</string>
+    <!-- Shared Pref key -->
     <string name="saved_current_time_ms">saved_current_time_ms</string>
+    <string name="saved_location_lat">saved_location_lat</string>
+    <string name="saved_location_lon">saved_location_lon</string>
     <!-- Fragment Labels -->
     <string name="splashFragmentLabel">SplashScreen</string>
     <string name="requestPositionFragmentLabel">Need permission</string>
     <string name="currentPositionLabel">Current position</string>
-    <string name="currentLatitudeLabel">Latitude</string>
-    <string name="currentLongitudeLabel">Longitude</string>
+    <string name="latitudeLabel">Latitude</string>
+    <string name="longitudeLabel">Longitude</string>
     <!-- Texts -->
     <string name="permission_explain">This app is using gps permission to work. Please authorize</string>
     <string name="askPermission">Ask location permission</string>
@@ -22,4 +25,7 @@
     <string name="yes">Yes</string>
     <string name="cancel">Cancel</string>
     <string name="no">No</string>
+    <string name="addNewPositionTitle">Add a new position</string>
+    <string name="addSubLocation">Add a new sublocation to :</string>
+    <string name="newSubLocationName">New sub location name</string>
 </resources>

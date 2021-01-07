@@ -127,6 +127,17 @@ class PositionService : Service() {
 
                 // update currentLocation for client side
                 currentLocation = location
+                with(sharedPref.edit()) {
+                    putLong(
+                        getString(R.string.saved_location_lat),
+                        java.lang.Double.doubleToRawLongBits(location.latitude)
+                    )
+                    putLong(
+                        getString(R.string.saved_location_lon),
+                        java.lang.Double.doubleToRawLongBits(location.longitude)
+                    )
+                    apply()
+                }
 
                 Log.d(TAG, "My Location : ${location.latitude} - ${location.longitude}")
 
