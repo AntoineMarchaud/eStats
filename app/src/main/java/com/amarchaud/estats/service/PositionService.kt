@@ -14,6 +14,8 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.amarchaud.estats.R
 import com.amarchaud.estats.model.database.AppDao
+import com.amarchaud.estats.model.entity.LocationInfo
+import com.amarchaud.estats.model.entity.LocationInfoSub
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,10 +45,16 @@ class PositionService : Service() {
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
     // ***************** Values for Clients ******************************* //
-    var matchingLocation: LocationWithSubs? = null
+    var currentLocation: android.location.Location? = null
         private set
 
-    var currentLocation: android.location.Location? = null
+    var matchingLocationWithSubs: LocationWithSubs? = null
+        private set
+
+    var matchingLocation: LocationInfo? = null
+        private set
+
+    var matchingSubLocation: LocationInfoSub? = null
         private set
     // ***************** Values for Clients end *************************** //
 
@@ -143,11 +151,20 @@ class PositionService : Service() {
 
 
                 GlobalScope.launch {
-                    val bestLoc = myDao.getBetterLocationWithSubs(
+                    val bestLoc = myDao.getBetterLocation(
                         location.latitude,
                         location.longitude
                     )
-                    bestLoc?.let {
+                    val bestSubLoc = myDao.getBetterSubLocation(
+                        location.latitude,
+                        location.longitude
+                    )
+                    val bestLocWithSub = myDao.getBetterLocationWithSubs(
+                        location.latitude,
+                        location.longitude
+                    )
+
+                    bestLocWithSub?.let {
 
                         val lastSave = sharedPref.getLong(
                             getString(R.string.saved_current_time_ms),
@@ -155,11 +172,17 @@ class PositionService : Service() {
                         )
                         val inc = System.currentTimeMillis() - lastSave
 
-                        it.locationInfo.duration_day += inc
-                        myDao.update(it.locationInfo)
+                        bestLoc?.let { locationInfo ->
+                            locationInfo.duration_day += inc
+                            myDao.update(locationInfo)
+                        }
+                        bestSubLoc?.let { locationSubInfo ->
+                            locationSubInfo.duration_day += inc
+                            myDao.update(locationSubInfo)
+                        }
 
                         Log.d(TAG, "Matching Location : ${it.locationInfo.name}")
-                        matchingLocation = it
+                        matchingLocationWithSubs = it
 
                         with(sharedPref.edit()) {
                             putLong(
@@ -168,6 +191,14 @@ class PositionService : Service() {
                             )
                             apply()
                         }
+                    }
+
+                    bestLoc?.let {
+                        matchingLocation = it
+                    }
+
+                    bestSubLoc?.let {
+                        matchingSubLocation = it
                     }
                 }
             }

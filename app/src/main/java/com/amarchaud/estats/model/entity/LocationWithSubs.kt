@@ -10,9 +10,9 @@ import com.amarchaud.estats.model.entity.LocationInfoSub
  * Utilisable aussi bien dans la DAO / ViewModel / View / Adapter
  */
 data class LocationWithSubs(
-    @Embedded val locationInfo: LocationInfo,
+    @Embedded var locationInfo: LocationInfo,
     @Relation(
         parentColumn = "id",
         entityColumn = "idMain"
-    ) val subLocation: List<LocationInfoSub>
+    ) var subLocation: MutableList<LocationInfoSub>
 )

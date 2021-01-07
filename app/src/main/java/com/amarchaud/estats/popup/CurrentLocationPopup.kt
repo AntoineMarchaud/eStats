@@ -6,14 +6,22 @@ import android.text.SpannableStringBuilder
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.amarchaud.estats.R
+import com.amarchaud.estats.model.entity.LocationInfo
+import com.amarchaud.estats.view.MainFragment
 import kotlinx.android.synthetic.main.popup_current_location.*
 import kotlinx.android.synthetic.main.popup_current_location.view.*
 
 class CurrentLocationPopup(
-    private val currentLocation: android.location.Location,
+    private val lat: Double,
+    private val lon: Double,
     private val listener: CurrentLocationDialogListener
 ) : DialogFragment() {
 
+    private var locationInfo: LocationInfo? = null
+
+    constructor(lat: Double, lon: Double, locationInfo: LocationInfo, listener: CurrentLocationDialogListener) : this(lat, lon, listener) {
+        this.locationInfo = locationInfo
+    }
 
     companion object {
         const val KEY_LAT = "KEY_LAT"
@@ -22,11 +30,7 @@ class CurrentLocationPopup(
     }
 
     interface CurrentLocationDialogListener {
-        fun onCurrentLocationDialogPositiveClick(
-            currentLocation: android.location.Location,
-            nameChoosen: String
-        )
-
+        fun onCurrentLocationDialogPositiveClick(lat: Double, lon: Double, nameChoosen: String, locationInfo: LocationInfo?)
         fun onCurrentLocationDialogListenerNegativeClick()
     }
 
@@ -44,8 +48,8 @@ class CurrentLocationPopup(
                     nameEditText.text =
                         SpannableStringBuilder(savedInstanceState.getString(KEY_NAME))
                 } else {
-                    subLat.text = java.lang.String.valueOf(currentLocation.latitude)
-                    subLon.text = java.lang.String.valueOf(currentLocation.longitude)
+                    subLat.text = java.lang.String.valueOf(lat)
+                    subLon.text = java.lang.String.valueOf(lon)
                 }
 
                 builder
@@ -53,8 +57,10 @@ class CurrentLocationPopup(
                     .setView(this)
                     .setPositiveButton(R.string.yes) { dialog, id ->
                         listener.onCurrentLocationDialogPositiveClick(
-                            currentLocation,
-                            nameEditText.text.toString()
+                            lat,
+                            lon,
+                            nameEditText.text.toString(),
+                            locationInfo
                         )
                         dialog?.dismiss()
                     }

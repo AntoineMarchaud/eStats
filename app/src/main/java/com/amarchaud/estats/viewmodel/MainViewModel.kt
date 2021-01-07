@@ -20,6 +20,7 @@ import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
+import com.amarchaud.estats.model.entity.LocationInfoSub
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.service.PositionService
 import kotlinx.coroutines.launch
@@ -44,6 +45,18 @@ class MainViewModel @ViewModelInject constructor(
             ITEM_MODIFIED,
             ITEM_DELETED
         }
+
+        enum class typeHeaderItem {
+            ITEM_INSERTED,
+            ITEM_MODIFIED,
+            ITEM_DELETED
+        }
+
+        enum class typeSubItem {
+            ITEM_INSERTED,
+            ITEM_MODIFIED,
+            ITEM_DELETED
+        }
     }
 
     private var mService: PositionService? = null
@@ -54,14 +67,18 @@ class MainViewModel @ViewModelInject constructor(
     var currentDate: String? = null
 
     @Bindable
-    var matchingLocation: LocationWithSubs? = null
+    var matchingLocation: LocationInfo? = null
 
     // LiveData properties ***************************************************************
     val myGeoLoc: MutableLiveData<Location> = MutableLiveData()
 
-    private var listOfLocation: MutableList<LocationWithSubs> = mutableListOf()
-    val oneLocation: MutableLiveData<Triple<LocationWithSubs, typeItem, Int>> =
-        MutableLiveData()
+    private var listOfLocationWithSubs: MutableList<LocationWithSubs> = mutableListOf()
+
+    // we can emit 3 different datas
+    val oneLocation: MutableLiveData<Triple<LocationInfo, typeHeaderItem, Int>> = MutableLiveData()
+    val oneSubLocation: MutableLiveData<Triple<LocationInfoSub, typeSubItem, Pair<Int, Int>>> = MutableLiveData()
+    val oneLocationWithSub: MutableLiveData<Triple<LocationWithSubs, typeItem, Int>> = MutableLiveData()
+
     val popupAddCurrentPosition: SingleLiveEvent<Location> = SingleLiveEvent()
 
     private var mHandler: Handler? = null
@@ -91,15 +108,11 @@ class MainViewModel @ViewModelInject constructor(
                         // si on trouve un matching location, il faut updater la liste
                         positionService.matchingLocation?.let { ml ->
 
-                            val pos = listOfLocation.indexOfFirst {
-                                it.locationInfo.id == matchingLocation?.locationInfo?.id
+                            val pos = listOfLocationWithSubs.indexOfFirst {
+                                it.locationInfo.id == ml.id
                             }
 
-                            oneLocation.postValue(
-                                Triple(
-                                    matchingLocation!!, typeItem.ITEM_MODIFIED, pos
-                                )
-                            )
+                            oneLocation.postValue(Triple(ml, typeHeaderItem.ITEM_MODIFIED, pos))
                         }
 
                         if (positionService.currentLocation != null) {
@@ -127,8 +140,8 @@ class MainViewModel @ViewModelInject constructor(
         viewModelScope.launch {
             myDao.getAllLocationsWithSubs().forEach {
                 Log.d(TAG, "Init Add location : $it")
-                listOfLocation.add(it)
-                oneLocation.value = (Triple(it, typeItem.ITEM_INSERTED, listOfLocation.size - 1))
+                listOfLocationWithSubs.add(it)
+                oneLocationWithSub.value = Triple(it, typeItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1)
             }
         }
     }
@@ -195,31 +208,53 @@ class MainViewModel @ViewModelInject constructor(
     /**
      * Callback of pop-up
      */
-    fun onCurrentLocationDialogPositiveClick(
-        currentLocation: Location,
-        nameChoosen: String
-    ) {
-        val locationInfoInserted = LocationInfo(
-            name = nameChoosen,
-            lat = currentLocation.latitude,
-            lon = currentLocation.longitude
-        )
+    // TODO : add delta !
+    fun onCurrentLocationDialogPositiveClick(lat: Double, lon: Double, nameChoosen: String, locationInfo: LocationInfo?) {
 
-        // add to Database
-        viewModelScope.launch {
-            myDao.insert(locationInfoInserted)
-
-            val ls  = myDao.getLastInsertedLocationWithSubs()
-            Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
-
-            listOfLocation.add(ls)
-            oneLocation.postValue(
-                Triple(
-                    ls,
-                    typeItem.ITEM_INSERTED,
-                    listOfLocation.size - 1
-                )
+        // if locationInfo is null, it is a new Location
+        if (locationInfo == null) {
+            val locationInfoInserted = LocationInfo(
+                name = nameChoosen,
+                lat = lat,
+                lon = lon
             )
+
+            // add to Database
+            viewModelScope.launch {
+                myDao.insert(locationInfoInserted)
+
+                val ls = myDao.getLastInsertedLocationWithSubs()
+                Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
+
+                listOfLocationWithSubs.add(ls)
+                oneLocation.postValue(Triple(ls.locationInfo, typeHeaderItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1))
+            }
+        } else { // it is a new sub location to add !
+
+            val locationSub = LocationInfoSub(
+                name = nameChoosen,
+                lat = lat,
+                lon = lon,
+                idMain = locationInfo.id
+            )
+
+            // add to Database
+            viewModelScope.launch {
+                myDao.insert(locationSub)
+
+                // get updated element in dao
+                val ls = myDao.getLastInsertedSubLocation()
+
+                // update current LocationInfo in the list
+                val mainIndex = listOfLocationWithSubs.indexOfFirst {
+                    it.locationInfo.id == locationInfo.id
+                }
+
+
+                listOfLocationWithSubs[mainIndex].subLocation.add(ls)
+                oneSubLocation.postValue(Triple(ls, typeSubItem.ITEM_INSERTED, Pair(mainIndex, listOfLocationWithSubs[mainIndex].subLocation.size - 1)))
+            }
+
         }
     }
 }

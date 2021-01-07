@@ -1,6 +1,5 @@
 package com.amarchaud.estats.view
 
-import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +14,7 @@ import com.amarchaud.estats.R
 import com.amarchaud.estats.adapter.LocationInfoItem
 import com.amarchaud.estats.adapter.LocationInfoSubItem
 import com.amarchaud.estats.databinding.MainFragmentBinding
+import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.popup.CurrentLocationPopup
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.xwray.groupie.ExpandableGroup
@@ -96,17 +96,21 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             }
         })
 
-        viewModel.oneLocation.observe(viewLifecycleOwner, { location ->
+        // at startup
+        viewModel.oneLocationWithSub.observe(viewLifecycleOwner, { oneLocationWithSubs ->
 
             // first = LocationWithSubs
             // second = type
             // third = position
+            val locationWithSubs = oneLocationWithSubs.first
+            val type = oneLocationWithSubs.second
+            val position = oneLocationWithSubs.third
 
             // principal
-            with(location.first) {
+            with(locationWithSubs) {
 
                 with(this.locationInfo) {
-                    val oneMarker: Marker = Marker(mapView)
+                    val oneMarker = Marker(mapView)
                     oneMarker.position = GeoPoint(lat, lon)
                     oneMarker.title = name
                     oneMarker.setTextIcon(name) // displayed on screen
@@ -122,41 +126,96 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             }
 
             // update groupieView
-            when (location.second) {
+            when (type) {
                 MainViewModel.Companion.typeItem.ITEM_INSERTED -> {
 
-                    val header =  LocationInfoItem(this, location.first.locationInfo)
+                    val header = LocationInfoItem(this@MainFragment, oneLocationWithSubs.first.locationInfo)
                     val expandableLocationWithSub = ExpandableGroup(header)
-                    location.first.subLocation.forEach {
+                    oneLocationWithSubs.first.subLocation.forEach {
                         expandableLocationWithSub.add(LocationInfoSubItem(it))
                     }
                     groupAdapter.add(expandableLocationWithSub)
-                    groupAdapter.notifyItemInserted(location.third)
+                    groupAdapter.notifyItemInserted(position)
                 }
                 MainViewModel.Companion.typeItem.ITEM_MODIFIED -> {
-                    (groupAdapter.getItem(location.third) as LocationInfoItem).locationInfo =
-                        location.first.locationInfo
-                    groupAdapter.notifyItemChanged(location.third)
+                    (groupAdapter.getItem(position) as LocationInfoItem).locationInfo = oneLocationWithSubs.first.locationInfo
+                    groupAdapter.notifyItemChanged(position)
                 }
                 MainViewModel.Companion.typeItem.ITEM_DELETED -> {
+                    // todo
                     //groupAdapter.remove
-                    groupAdapter.notifyItemChanged(location.third)
+                    groupAdapter.notifyItemChanged(position)
                 }
             }
+        })
 
+        viewModel.oneLocation.observe(viewLifecycleOwner, { oneLocation ->
 
-            // todo
-            /*
-            // draw circle around the marker
-            val circle: List<GeoPoint> =
-                Polygon.pointsAsCircle(oneMarker.position, it.delta.toDouble())
-            val p = Polygon(mapView)
-            p.points = circle
-            p.title = "A circle"
-            val fillPaint = p.fillPaint
-            fillPaint.color = 0xFF0000
-            mapView.overlayManager.add(p)
-            mapView.invalidate()*/
+            // first = LocationInfo
+            // second = type
+            // third = position
+            val locationInfo = oneLocation.first
+            val type = oneLocation.second
+            val position = oneLocation.third
+
+            // principal
+            with(locationInfo) {
+                val oneMarker = Marker(mapView)
+                oneMarker.position = GeoPoint(lat, lon)
+                oneMarker.title = name
+                oneMarker.setTextIcon(name) // displayed on screen
+                mapView.overlays.add(oneMarker)
+            }
+
+            // update groupieView
+            when (type) {
+                MainViewModel.Companion.typeHeaderItem.ITEM_INSERTED -> {
+                    val header = LocationInfoItem(this@MainFragment, locationInfo)
+                    val expandableLocationWithSub = ExpandableGroup(header)
+                    groupAdapter.add(expandableLocationWithSub)
+                    groupAdapter.notifyItemInserted(oneLocation.third)
+                }
+                MainViewModel.Companion.typeHeaderItem.ITEM_MODIFIED -> {
+                    (groupAdapter.getItem(position) as LocationInfoItem).locationInfo = locationInfo
+                    groupAdapter.notifyItemChanged(oneLocation.third)
+                }
+                MainViewModel.Companion.typeHeaderItem.ITEM_DELETED -> {
+                    // todo
+                    //groupAdapter.remove
+                    groupAdapter.notifyItemChanged(oneLocation.third)
+                }
+            }
+        })
+
+        viewModel.oneSubLocation.observe(viewLifecycleOwner, { oneSubLocation ->
+            // first = LocationSub
+            // second = type
+            // third = Pair(Index of main, index of sub)
+            val locationInfoSub = oneSubLocation.first
+            val type = oneSubLocation.second
+            val p = oneSubLocation.third
+            val indexMain = p.first
+            val indexSub = p.second
+
+            // principal
+            with(locationInfoSub) {
+                // todo ?
+            }
+
+            // update groupieView
+            when (type) {
+                MainViewModel.Companion.typeSubItem.ITEM_INSERTED -> {
+                    val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
+                    expandableLocationWithSub.add(LocationInfoSubItem(locationInfoSub))
+                    groupAdapter.notifyItemChanged(indexMain)
+                }
+                MainViewModel.Companion.typeSubItem.ITEM_MODIFIED -> {
+
+                }
+                MainViewModel.Companion.typeSubItem.ITEM_DELETED -> {
+                    // todo
+                }
+            }
 
 
         })
@@ -164,7 +223,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
         // just display popup
         viewModel.popupAddCurrentPosition.observe(viewLifecycleOwner, { location ->
             val fragmentManager = requireActivity().supportFragmentManager
-            val customPopup = CurrentLocationPopup(location, this)
+            val customPopup = CurrentLocationPopup(location.latitude, location.longitude, this)
             customPopup.show(fragmentManager, "add new position")
         })
 
@@ -208,14 +267,30 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
      * Callbacks of Popup
      */
     override fun onCurrentLocationDialogPositiveClick(
-        currentLocation: Location,
-        nameChoosen: String
+        lat: Double,
+        lon: Double,
+        nameChoosen: String,
+        locationInfo: LocationInfo?
     ) {
-        viewModel.onCurrentLocationDialogPositiveClick(currentLocation, nameChoosen)
+        viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen, locationInfo)
         closeFABMenu()
     }
 
     override fun onCurrentLocationDialogListenerNegativeClick() {
         closeFABMenu()
     }
+
+
+    // todo
+    /*
+    // draw circle around the marker
+    val circle: List<GeoPoint> =
+        Polygon.pointsAsCircle(oneMarker.position, it.delta.toDouble())
+    val p = Polygon(mapView)
+    p.points = circle
+    p.title = "A circle"
+    val fillPaint = p.fillPaint
+    fillPaint.color = 0xFF0000
+    mapView.overlayManager.add(p)
+    mapView.invalidate()*/
 }
