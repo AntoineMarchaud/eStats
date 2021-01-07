@@ -83,7 +83,6 @@ class PositionService : Service() {
             Context.MODE_PRIVATE
         )
 
-
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION

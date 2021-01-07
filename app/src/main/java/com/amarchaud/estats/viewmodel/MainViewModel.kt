@@ -95,7 +95,6 @@ class MainViewModel @ViewModelInject constructor(
                                 it.locationInfo.id == matchingLocation?.locationInfo?.id
                             }
 
-                            Log.d(TAG, "modify location $matchingLocation at position $pos")
                             oneLocation.postValue(
                                 Triple(
                                     matchingLocation!!, typeItem.ITEM_MODIFIED, pos

@@ -2,29 +2,31 @@ package com.amarchaud.estats.view
 
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
+import com.amarchaud.estats.adapter.ExpandableHeaderItem
+import com.amarchaud.estats.adapter.LocationInfoSubItem
 import com.amarchaud.estats.databinding.MainFragmentBinding
 import com.amarchaud.estats.popup.CurrentLocationPopup
 import com.amarchaud.estats.viewmodel.MainViewModel
+import com.xwray.groupie.ExpandableGroup
+import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.GroupieViewHolder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.main_fragment.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
-import androidx.recyclerview.widget.ConcatAdapter
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.amarchaud.estats.adapter.ExpandableItemAnimator
-import com.amarchaud.estats.adapter.ItemsExpandableAdapter
-import com.amarchaud.estats.fake.DataProvider
 
 
 @AndroidEntryPoint
@@ -38,13 +40,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
     // Marker of my position
     private var myPositionMarker: Marker? = null
 
-    // recyclerView
-    private val concatAdapterConfig by lazy {
-        ConcatAdapter.Config.Builder()
-            .setIsolateViewTypes(false)
-            .build()
-    }
-    var concatAdapter: ConcatAdapter = ConcatAdapter(concatAdapterConfig)
+    val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,8 +60,10 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
         with(binding.recyclerviewItems) {
             layoutManager =
                 LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-            itemAnimator = ExpandableItemAnimator()
-            adapter = concatAdapter
+
+            // pour eviter le blink quand item est modifié
+            (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false;
+            adapter = groupAdapter
         }
 
 
@@ -101,6 +99,10 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
         viewModel.oneLocation.observe(viewLifecycleOwner, { location ->
 
+            // first = LocationWithSubs
+            // second = type
+            // third = position
+
             // principal
             with(location.first) {
 
@@ -120,19 +122,26 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                 }
             }
 
-            // update recycler view
+            // update groupieView
             when (location.second) {
                 MainViewModel.Companion.typeItem.ITEM_INSERTED -> {
-                    concatAdapter.addAdapter(ItemsExpandableAdapter(location.first))
-                    concatAdapter.notifyItemInserted(location.third)
+
+                    val expandableHeaderItem = ExpandableHeaderItem(location.first.locationInfo)
+                    val expandableLocationWithSub = ExpandableGroup(expandableHeaderItem)
+                    location.first.subLocation.forEach {
+                        expandableLocationWithSub.add(LocationInfoSubItem(it))
+                    }
+                    groupAdapter.add(expandableLocationWithSub)
+                    groupAdapter.notifyItemInserted(location.third)
                 }
                 MainViewModel.Companion.typeItem.ITEM_MODIFIED -> {
-                    (concatAdapter.adapters[location.third] as ItemsExpandableAdapter).item = location.first
-                    concatAdapter.notifyItemChanged(location.third)
+                    (groupAdapter.getItem(location.third) as ExpandableHeaderItem).locationInfo =
+                        location.first.locationInfo
+                    groupAdapter.notifyItemChanged(location.third)
                 }
                 MainViewModel.Companion.typeItem.ITEM_DELETED -> {
-                    concatAdapter.removeAdapter(concatAdapter.adapters[location.third])
-                    concatAdapter.notifyItemRemoved(location.third)
+                    //groupAdapter.remove
+                    groupAdapter.notifyItemChanged(location.third)
                 }
             }
 

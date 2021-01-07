@@ -4,12 +4,12 @@ import android.widget.TextView
 import androidx.databinding.BindingAdapter
 import java.util.concurrent.TimeUnit
 
-object TimeStransformation {
+object TimeTransformation {
     @JvmStatic
     @BindingAdapter("onLongMsToTime")
-    fun setOnImageLoadFromUrl(view: TextView, timems: Long?) {
-        timems?.let {
-            view.text = when (it) {
+    fun setOnImageLoadFromUrl(view: TextView, timeMs: Long?) {
+        timeMs?.let {
+            view.text = when (timeMs) {
                 in (0L..60000L) -> { // < 1 min
                     String.format(
                         "%02ds",

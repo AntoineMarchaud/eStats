@@ -14,6 +14,10 @@ android {
         viewBinding true
     }
 
+    androidExtensions {
+        experimental = true
+    }
+
 
     defaultConfig {
         applicationId "com.amarchaud.estats"
@@ -100,6 +104,7 @@ dependencies {
 
     // Groupie : recyclerView advanced
     implementation "com.xwray:groupie:$groupie_version"
+    implementation "com.xwray:groupie-kotlin-android-extensions:$groupie_version"
     implementation "com.xwray:groupie-viewbinding:$groupie_version"
 }
 
