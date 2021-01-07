@@ -52,7 +52,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
     ): View {
         (activity as AppCompatActivity).supportActionBar?.show()
 
-        binding = DataBindingUtil.inflate(inflater, R.layout.main_fragment, container, false)
+        binding = MainFragmentBinding.inflate(inflater)
         return binding.root
     }
 

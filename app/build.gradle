@@ -9,11 +9,8 @@ android {
     compileSdkVersion 30
     buildToolsVersion "30.0.0"
 
-    dataBinding {
-        enabled = true
-    }
-
     buildFeatures {
+        dataBinding true
         viewBinding true
     }
 
@@ -100,6 +97,10 @@ dependencies {
 
     // recyclerView with concat
     implementation "androidx.recyclerview:recyclerview:1.2.0-beta01"
+
+    // Groupie : recyclerView advanced
+    implementation "com.xwray:groupie:$groupie_version"
+    implementation "com.xwray:groupie-viewbinding:$groupie_version"
 }
 
 apply plugin: 'dagger.hilt.android.plugin'

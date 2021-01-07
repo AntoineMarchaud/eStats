@@ -43,20 +43,10 @@ class ItemsExpandableAdapter(var item: LocationWithSubs) :
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             VIEW_TYPE_MAIN_LOCATION -> ViewHolder.LocationInfoViewHolder(
-                DataBindingUtil.inflate(
-                    inflater,
-                    R.layout.item_location,
-                    parent,
-                    false
-                )
+                ItemLocationBinding.inflate(inflater)
             )
             else -> ViewHolder.LocationInfoSubViewHolder(
-                DataBindingUtil.inflate(
-                    inflater,
-                    R.layout.item_sub_location,
-                    parent,
-                    false
-                )
+                ItemSubLocationBinding.inflate(inflater)
             )
         }
     }
