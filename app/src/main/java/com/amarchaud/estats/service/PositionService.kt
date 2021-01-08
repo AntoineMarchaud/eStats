@@ -175,10 +175,14 @@ class PositionService : Service() {
                         bestLoc?.let { locationInfo ->
                             locationInfo.duration_day += inc
                             myDao.update(locationInfo)
+
+                            matchingLocation = locationInfo
                         }
                         bestSubLoc?.let { locationSubInfo ->
                             locationSubInfo.duration_day += inc
                             myDao.update(locationSubInfo)
+
+                            matchingSubLocation = locationSubInfo
                         }
 
                         Log.d(TAG, "Matching Location : ${it.locationInfo.name}")
@@ -191,14 +195,6 @@ class PositionService : Service() {
                             )
                             apply()
                         }
-                    }
-
-                    bestLoc?.let {
-                        matchingLocation = it
-                    }
-
-                    bestSubLoc?.let {
-                        matchingSubLocation = it
                     }
                 }
             }

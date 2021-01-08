@@ -102,18 +102,35 @@ class MainViewModel @ViewModelInject constructor(
 
                     mService?.let { positionService ->
 
-                        matchingLocation = positionService.matchingLocation
-                        notifyPropertyChanged(BR.matchingLocation)
-
                         // si on trouve un matching location, il faut updater la liste
                         positionService.matchingLocation?.let { ml ->
 
+                            // update view
+                            matchingLocation = ml
+                            notifyPropertyChanged(BR.matchingLocation)
+
+                            // update list
                             val pos = listOfLocationWithSubs.indexOfFirst {
                                 it.locationInfo.id == ml.id
                             }
-
                             oneLocation.postValue(Triple(ml, typeHeaderItem.ITEM_MODIFIED, pos))
                         }
+
+
+                        // si on trouve un matching location, il faut updater la liste
+                        positionService.matchingSubLocation?.let { subloc ->
+
+                            // update list
+                            val pos = listOfLocationWithSubs.indexOfFirst {
+                                it.locationInfo.id == subloc.idMain
+                            }
+
+                            val posSub = listOfLocationWithSubs[pos].subLocation.indexOfFirst {
+                                it.idSub == subloc.idSub
+                            }
+                            oneSubLocation.postValue(Triple(subloc, typeSubItem.ITEM_MODIFIED, Pair(pos, posSub)))
+                        }
+
 
                         if (positionService.currentLocation != null) {
                             myGeoLoc.postValue(positionService.currentLocation)

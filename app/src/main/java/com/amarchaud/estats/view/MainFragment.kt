@@ -13,6 +13,7 @@ import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
 import com.amarchaud.estats.adapter.LocationInfoItem
 import com.amarchaud.estats.adapter.LocationInfoSubItem
+import com.amarchaud.estats.databinding.ItemSubLocationBinding
 import com.amarchaud.estats.databinding.MainFragmentBinding
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.popup.CurrentLocationPopup
@@ -144,7 +145,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                 MainViewModel.Companion.typeItem.ITEM_DELETED -> {
                     // todo
                     //groupAdapter.remove
-                    groupAdapter.notifyItemChanged(position)
+                    groupAdapter.notifyItemRemoved(position)
                 }
             }
         })
@@ -193,9 +194,8 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             // third = Pair(Index of main, index of sub)
             val locationInfoSub = oneSubLocation.first
             val type = oneSubLocation.second
-            val p = oneSubLocation.third
-            val indexMain = p.first
-            val indexSub = p.second
+            val indexMain = oneSubLocation.third.first
+            val indexSub = oneSubLocation.third.second
 
             // principal
             with(locationInfoSub) {
@@ -210,14 +210,17 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     groupAdapter.notifyItemChanged(indexMain)
                 }
                 MainViewModel.Companion.typeSubItem.ITEM_MODIFIED -> {
-
+                    val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
+                    // expandableLocationWithSub.getGroup(0) = header
+                    (expandableLocationWithSub.getGroup(1 + indexSub) as LocationInfoSubItem).apply {
+                        this.locationInfoSub = locationInfoSub
+                        notifyChanged()
+                    }
                 }
                 MainViewModel.Companion.typeSubItem.ITEM_DELETED -> {
                     // todo
                 }
             }
-
-
         })
 
         // just display popup
