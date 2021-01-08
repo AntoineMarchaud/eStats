@@ -45,7 +45,7 @@ class PositionService : Service() {
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
     // ***************** Values for Clients ******************************* //
-    var currentLocation: android.location.Location? = null
+    var geoLoc: android.location.Location? = null
         private set
 
     var matchingLocationWithSubs: LocationWithSubs? = null
@@ -134,7 +134,7 @@ class PositionService : Service() {
             for (location in locationResult.locations) {
 
                 // update currentLocation for client side
-                currentLocation = location
+                geoLoc = location
                 with(sharedPref.edit()) {
                     putLong(
                         getString(R.string.saved_location_lat),
@@ -164,7 +164,11 @@ class PositionService : Service() {
                         location.longitude
                     )
 
-                    bestLocWithSub?.let {
+                    if (bestLocWithSub == null) {
+                        matchingLocation = null
+                        matchingSubLocation = null
+                        matchingLocationWithSubs = null
+                    } else {
 
                         val lastSave = sharedPref.getLong(
                             getString(R.string.saved_current_time_ms),
@@ -175,18 +179,18 @@ class PositionService : Service() {
                         bestLoc?.let { locationInfo ->
                             locationInfo.duration_day += inc
                             myDao.update(locationInfo)
-
-                            matchingLocation = locationInfo
+                            Log.d(TAG, "Matching Location : ${locationInfo.name ?: "none"}")
                         }
+                        matchingLocation = bestLoc
+
                         bestSubLoc?.let { locationSubInfo ->
                             locationSubInfo.duration_day += inc
                             myDao.update(locationSubInfo)
-
-                            matchingSubLocation = locationSubInfo
+                            Log.d(TAG, "Matching sub Location : ${locationSubInfo.name ?: "none"}")
                         }
+                        matchingSubLocation = bestSubLoc
 
-                        Log.d(TAG, "Matching Location : ${it.locationInfo.name}")
-                        matchingLocationWithSubs = it
+                        matchingLocationWithSubs = bestLocWithSub
 
                         with(sharedPref.edit()) {
                             putLong(

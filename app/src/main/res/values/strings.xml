@@ -6,6 +6,7 @@
     <string name="saved_location_lat">saved_location_lat</string>
     <string name="saved_location_lon">saved_location_lon</string>
     <!-- Fragment Labels -->
+    <string name="centerView">Center view</string>
     <string name="splashFragmentLabel">SplashScreen</string>
     <string name="requestPositionFragmentLabel">Need permission</string>
     <string name="currentPositionLabel">Current position</string>

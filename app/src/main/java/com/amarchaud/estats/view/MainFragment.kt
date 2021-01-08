@@ -57,15 +57,24 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
         binding.mainViewModel = viewModel
         binding.lifecycleOwner = this
 
-        with(binding.recyclerviewItems) {
-            layoutManager =
-                LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        with(binding) {
+            centerView.setOnClickListener {
+                viewModel.myGeoLoc.value?.apply {
+                    val geoPoint = GeoPoint(latitude, longitude)
+                    mapView.controller.setCenter(geoPoint)
+                    mapView.controller.animateTo(geoPoint)
+                }
+            }
 
-            // pour eviter le blink quand item est modifié
-            (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false;
-            adapter = groupAdapter
+            with(recyclerviewItems) {
+                layoutManager =
+                    LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+
+                // pour eviter le blink quand item est modifié
+                (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false;
+                adapter = groupAdapter
+            }
         }
-
 
         // map default config
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
@@ -85,7 +94,6 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             // update map
             val geoPoint = GeoPoint(location.latitude, location.longitude)
-
             mapView.controller.setCenter(geoPoint)
             mapView.controller.animateTo(geoPoint)
             mapView.overlays.remove(myPositionMarker)
@@ -96,6 +104,15 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                 mapView.overlays.add(marker)
             }
         })
+
+        fun makeMaker(lat: Double, lon: Double, name: String?) {
+            val oneMarker = Marker(mapView)
+            oneMarker.position = GeoPoint(lat, lon)
+            oneMarker.title = name
+            oneMarker.setTextIcon(name) // displayed on screen
+            oneMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+            mapView.overlays.add(oneMarker)
+        }
 
         // at startup
         viewModel.oneLocationWithSub.observe(viewLifecycleOwner, { oneLocationWithSubs ->
@@ -111,11 +128,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             with(locationWithSubs) {
 
                 with(this.locationInfo) {
-                    val oneMarker = Marker(mapView)
-                    oneMarker.position = GeoPoint(lat, lon)
-                    oneMarker.title = name
-                    oneMarker.setTextIcon(name) // displayed on screen
-                    mapView.overlays.add(oneMarker)
+                    makeMaker(lat, lon, name)
                 }
 
                 // secondaire
@@ -130,17 +143,13 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             when (type) {
                 MainViewModel.Companion.typeItem.ITEM_INSERTED -> {
 
-                    val header = LocationInfoItem(this@MainFragment, oneLocationWithSubs.first.locationInfo)
+                    val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo)
                     val expandableLocationWithSub = ExpandableGroup(header)
-                    oneLocationWithSubs.first.subLocation.forEach {
+                    locationWithSubs.subLocation.forEach {
                         expandableLocationWithSub.add(LocationInfoSubItem(it))
                     }
                     groupAdapter.add(expandableLocationWithSub)
                     groupAdapter.notifyItemInserted(position)
-                }
-                MainViewModel.Companion.typeItem.ITEM_MODIFIED -> {
-                    (groupAdapter.getItem(position) as LocationInfoItem).locationInfo = oneLocationWithSubs.first.locationInfo
-                    groupAdapter.notifyItemChanged(position)
                 }
                 MainViewModel.Companion.typeItem.ITEM_DELETED -> {
                     // todo
@@ -161,11 +170,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             // principal
             with(locationInfo) {
-                val oneMarker = Marker(mapView)
-                oneMarker.position = GeoPoint(lat, lon)
-                oneMarker.title = name
-                oneMarker.setTextIcon(name) // displayed on screen
-                mapView.overlays.add(oneMarker)
+                makeMaker(lat, lon, name)
             }
 
             // update groupieView

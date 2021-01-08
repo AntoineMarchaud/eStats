@@ -42,7 +42,6 @@ class MainViewModel @ViewModelInject constructor(
 
         enum class typeItem {
             ITEM_INSERTED,
-            ITEM_MODIFIED,
             ITEM_DELETED
         }
 
@@ -59,7 +58,7 @@ class MainViewModel @ViewModelInject constructor(
         }
     }
 
-    private var mService: PositionService? = null
+    private var mPositionService: PositionService? = null
     private var bound: Boolean = false
 
     // Bindable properties ***************************************************************
@@ -68,6 +67,9 @@ class MainViewModel @ViewModelInject constructor(
 
     @Bindable
     var matchingLocation: LocationInfo? = null
+
+    @Bindable
+    var matchingSubLocation: LocationInfoSub? = null
 
     // LiveData properties ***************************************************************
     val myGeoLoc: MutableLiveData<Location> = MutableLiveData()
@@ -100,14 +102,14 @@ class MainViewModel @ViewModelInject constructor(
 
                 if (bound) {
 
-                    mService?.let { positionService ->
+                    mPositionService?.let { positionService ->
+
+                        // update view
+                        matchingLocation = positionService.matchingLocation
+                        notifyPropertyChanged(BR.matchingLocation)
 
                         // si on trouve un matching location, il faut updater la liste
                         positionService.matchingLocation?.let { ml ->
-
-                            // update view
-                            matchingLocation = ml
-                            notifyPropertyChanged(BR.matchingLocation)
 
                             // update list
                             val pos = listOfLocationWithSubs.indexOfFirst {
@@ -116,6 +118,10 @@ class MainViewModel @ViewModelInject constructor(
                             oneLocation.postValue(Triple(ml, typeHeaderItem.ITEM_MODIFIED, pos))
                         }
 
+
+                        // update view
+                        matchingSubLocation = positionService.matchingSubLocation
+                        notifyPropertyChanged(BR.matchingSubLocation)
 
                         // si on trouve un matching location, il faut updater la liste
                         positionService.matchingSubLocation?.let { subloc ->
@@ -132,8 +138,8 @@ class MainViewModel @ViewModelInject constructor(
                         }
 
 
-                        if (positionService.currentLocation != null) {
-                            myGeoLoc.postValue(positionService.currentLocation)
+                        if (positionService.geoLoc != null) {
+                            myGeoLoc.postValue(positionService.geoLoc)
                         }
                     }
                 }
@@ -168,7 +174,7 @@ class MainViewModel @ViewModelInject constructor(
         // Called when the connection with the service is established
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as PositionService.LocalBinder
-            mService = binder.getService()
+            mPositionService = binder.getService()
             bound = true
         }
 
@@ -213,8 +219,8 @@ class MainViewModel @ViewModelInject constructor(
     fun onAddCurrentPosition(v: View) {
 
         if (bound) {
-            mService?.let {
-                it.currentLocation?.let { location ->
+            mPositionService?.let {
+                it.geoLoc?.let { location ->
                     // just say to Fragment to display
                     popupAddCurrentPosition.postValue(location)
                 }
