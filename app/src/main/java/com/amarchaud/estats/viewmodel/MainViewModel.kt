@@ -88,15 +88,15 @@ class MainViewModel @ViewModelInject constructor(
         override fun run() {
             try {
 
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    currentDate = DateTimeFormatter
+                currentDate = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    DateTimeFormatter
                         .ofPattern(DATE_FORMAT)
                         .withZone(ZoneId.systemDefault())
                         .format(Instant.now())
                 } else {
                     val formatter = SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
                     val date = Date()
-                    currentDate = formatter.format(date)
+                    formatter.format(date)
                 }
                 notifyPropertyChanged(BR.currentDate)
 

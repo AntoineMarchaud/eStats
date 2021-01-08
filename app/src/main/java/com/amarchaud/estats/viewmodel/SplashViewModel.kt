@@ -32,17 +32,17 @@ class SplashViewModel(app: Application) : BaseViewModel(app) {
                 sharedPref.getBoolean(app.getString(R.string.isFirstLaunch), true).let {
                     if (it) {
 
-                        /*
+
                         with(sharedPref.edit()) {
-                            putBoolean(app.getString(R.string.isFirstLaunch), true)
+                            putBoolean(app.getString(R.string.isFirstLaunch), false)
                             apply()
-                        }*/
+                        }
 
                         // go to request permission GPS Fragment
                         actionLiveData.postValue(SplashFragmentDirections.actionSplashFragmentToRequestPositionFragment())
                     } else {
                         // go to main Fragment
-                        actionLiveData.postValue(SplashFragmentDirections.actionSplashFragmentToRequestPositionFragment())
+                        actionLiveData.postValue(SplashFragmentDirections.actionSplashFragmentToMainFragment())
                     }
                 }
 
