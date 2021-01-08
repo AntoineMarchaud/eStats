@@ -115,7 +115,9 @@ class MainViewModel @ViewModelInject constructor(
                             val pos = listOfLocationWithSubs.indexOfFirst {
                                 it.locationInfo.id == ml.id
                             }
-                            oneLocation.postValue(Triple(ml, TypeHeaderItem.ITEM_MODIFIED, pos))
+                            if (pos >= 0) {
+                                oneLocation.postValue(Triple(ml, TypeHeaderItem.ITEM_MODIFIED, pos))
+                            }
                         }
 
 
@@ -134,7 +136,9 @@ class MainViewModel @ViewModelInject constructor(
                             val posSub = listOfLocationWithSubs[pos].subLocation.indexOfFirst {
                                 it.idSub == subloc.idSub
                             }
-                            oneSubLocation.postValue(Triple(subloc, TypeSubItem.ITEM_MODIFIED, Pair(pos, posSub)))
+                            if (posSub >= 0) {
+                                oneSubLocation.postValue(Triple(subloc, TypeSubItem.ITEM_MODIFIED, Pair(pos, posSub)))
+                            }
                         }
 
 
