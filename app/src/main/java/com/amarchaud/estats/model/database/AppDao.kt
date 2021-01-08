@@ -22,6 +22,22 @@ interface AppDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(locationInfoSub: LocationInfoSub)
 
+    @Transaction
+    suspend fun delete(toDelete: LocationWithSubs) {
+        toDelete.subLocation.forEach {
+            delete(it)
+        }
+        delete(toDelete.locationInfo)
+    }
+
+    @Delete
+    suspend fun delete(toDelete: LocationInfo)
+
+    @Delete
+    suspend fun delete(toDelete: LocationInfoSub)
+
+
+
     // Location
     @Transaction
     @Query("SELECT * FROM Locations ORDER BY id ASC")

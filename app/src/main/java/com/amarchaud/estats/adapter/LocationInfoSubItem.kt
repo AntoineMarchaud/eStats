@@ -1,6 +1,7 @@
 package com.amarchaud.estats.adapter
 
 import android.view.View
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.ItemSubLocationBinding
 import com.amarchaud.estats.model.entity.LocationInfoSub
@@ -16,4 +17,7 @@ class LocationInfoSubItem(var locationInfoSub: LocationInfoSub) :
     override fun bind(viewBinding: ItemSubLocationBinding, position: Int) {
         viewBinding.locationInfoSub = locationInfoSub
     }
+
+    // delete item if swipe to left!
+    override fun getSwipeDirs(): Int  = ItemTouchHelper.LEFT
 }

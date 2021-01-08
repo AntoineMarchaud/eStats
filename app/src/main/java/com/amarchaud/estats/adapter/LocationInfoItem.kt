@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.Animatable
 import android.view.View
 import android.widget.Toast
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.amarchaud.estats.R
 import com.amarchaud.estats.bindingadapter.TimeTransformation
 import com.amarchaud.estats.databinding.ItemLocationBinding
@@ -68,6 +69,9 @@ class LocationInfoItem(
             }
         }
     }
+
+    // delete item if swipe to left!
+    override fun getSwipeDirs(): Int  = ItemTouchHelper.LEFT
 
     override fun setExpandableGroup(onToggleListener: ExpandableGroup) {
         this.expandableGroup = onToggleListener

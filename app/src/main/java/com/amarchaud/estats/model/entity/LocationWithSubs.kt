@@ -1,6 +1,7 @@
 package com.amarchaud.estats.model.entity
 
 import androidx.room.Embedded
+import androidx.room.Entity
 import androidx.room.Relation
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.entity.LocationInfoSub

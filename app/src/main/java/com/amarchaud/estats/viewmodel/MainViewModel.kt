@@ -24,6 +24,7 @@ import com.amarchaud.estats.model.entity.LocationInfoSub
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.service.PositionService
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
@@ -40,18 +41,17 @@ class MainViewModel @ViewModelInject constructor(
         const val TAG = "MainViewModel"
         const val DATE_FORMAT = "dd-MM-yyyy HH:mm:ss"
 
-        enum class typeItem {
+        enum class TypeItem {
             ITEM_INSERTED,
             ITEM_DELETED
         }
 
-        enum class typeHeaderItem {
+        enum class TypeHeaderItem {
             ITEM_INSERTED,
-            ITEM_MODIFIED,
-            ITEM_DELETED
+            ITEM_MODIFIED
         }
 
-        enum class typeSubItem {
+        enum class TypeSubItem {
             ITEM_INSERTED,
             ITEM_MODIFIED,
             ITEM_DELETED
@@ -77,9 +77,9 @@ class MainViewModel @ViewModelInject constructor(
     private var listOfLocationWithSubs: MutableList<LocationWithSubs> = mutableListOf()
 
     // we can emit 3 different datas
-    val oneLocation: MutableLiveData<Triple<LocationInfo, typeHeaderItem, Int>> = MutableLiveData()
-    val oneSubLocation: MutableLiveData<Triple<LocationInfoSub, typeSubItem, Pair<Int, Int>>> = MutableLiveData()
-    val oneLocationWithSub: MutableLiveData<Triple<LocationWithSubs, typeItem, Int>> = MutableLiveData()
+    val oneLocation: MutableLiveData<Triple<LocationInfo, TypeHeaderItem, Int>> = MutableLiveData()
+    val oneSubLocation: MutableLiveData<Triple<LocationInfoSub, TypeSubItem, Pair<Int, Int>>> = MutableLiveData()
+    val oneLocationWithSub: MutableLiveData<Triple<LocationWithSubs, TypeItem, Int>> = MutableLiveData()
 
     val popupAddCurrentPosition: SingleLiveEvent<Location> = SingleLiveEvent()
 
@@ -115,7 +115,7 @@ class MainViewModel @ViewModelInject constructor(
                             val pos = listOfLocationWithSubs.indexOfFirst {
                                 it.locationInfo.id == ml.id
                             }
-                            oneLocation.postValue(Triple(ml, typeHeaderItem.ITEM_MODIFIED, pos))
+                            oneLocation.postValue(Triple(ml, TypeHeaderItem.ITEM_MODIFIED, pos))
                         }
 
 
@@ -134,7 +134,7 @@ class MainViewModel @ViewModelInject constructor(
                             val posSub = listOfLocationWithSubs[pos].subLocation.indexOfFirst {
                                 it.idSub == subloc.idSub
                             }
-                            oneSubLocation.postValue(Triple(subloc, typeSubItem.ITEM_MODIFIED, Pair(pos, posSub)))
+                            oneSubLocation.postValue(Triple(subloc, TypeSubItem.ITEM_MODIFIED, Pair(pos, posSub)))
                         }
 
 
@@ -164,7 +164,7 @@ class MainViewModel @ViewModelInject constructor(
             myDao.getAllLocationsWithSubs().forEach {
                 Log.d(TAG, "Init Add location : $it")
                 listOfLocationWithSubs.add(it)
-                oneLocationWithSub.value = Triple(it, typeItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1)
+                oneLocationWithSub.value = Triple(it, TypeItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1)
             }
         }
     }
@@ -250,7 +250,7 @@ class MainViewModel @ViewModelInject constructor(
                 Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
 
                 listOfLocationWithSubs.add(ls)
-                oneLocation.postValue(Triple(ls.locationInfo, typeHeaderItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1))
+                oneLocation.postValue(Triple(ls.locationInfo, TypeHeaderItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1))
             }
         } else { // it is a new sub location to add !
 
@@ -273,11 +273,71 @@ class MainViewModel @ViewModelInject constructor(
                     it.locationInfo.id == locationInfo.id
                 }
 
-
                 listOfLocationWithSubs[mainIndex].subLocation.add(ls)
-                oneSubLocation.postValue(Triple(ls, typeSubItem.ITEM_INSERTED, Pair(mainIndex, listOfLocationWithSubs[mainIndex].subLocation.size - 1)))
+                oneSubLocation.postValue(Triple(ls, TypeSubItem.ITEM_INSERTED, Pair(mainIndex, listOfLocationWithSubs[mainIndex].subLocation.size - 1)))
             }
 
+        }
+    }
+
+    fun deleteItem(locationToDelete: LocationInfo) {
+
+        listOfLocationWithSubs.indexOfFirst {
+            it.locationInfo.id == locationToDelete.id
+        }.let { position ->
+
+            listOfLocationWithSubs[position].let {
+
+                // remove from db
+                viewModelScope.launch {
+                    myDao.delete(it)
+
+                    // remove from local list
+                    listOfLocationWithSubs.remove(it)
+
+                    // refresh view
+                    oneLocationWithSub.postValue(Triple(it, TypeItem.ITEM_DELETED, position))
+
+                    // put matching to null if it was the same !!
+                    matchingLocation?.apply {
+                        if (id == locationToDelete.id) {
+                            matchingLocation = null
+                            notifyPropertyChanged(BR.matchingLocation)
+                            matchingSubLocation = null
+                            notifyPropertyChanged(BR.matchingSubLocation)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun deleteSubItem(subLocationToDelete: LocationInfoSub) {
+
+        listOfLocationWithSubs.indexOfFirst {
+            it.locationInfo.id == subLocationToDelete.idMain
+        }.let { mainPosition ->
+
+            listOfLocationWithSubs[mainPosition].let { locationWithSubs ->
+                viewModelScope.launch {
+                    // remove from db
+                    myDao.delete(subLocationToDelete)
+
+                    // remove from local list
+                    locationWithSubs.subLocation.remove(subLocationToDelete)
+
+                    // refresh view
+                    oneSubLocation.postValue(Triple(subLocationToDelete, TypeSubItem.ITEM_DELETED, Pair(mainPosition, locationWithSubs.subLocation.indexOf(subLocationToDelete))))
+
+                    // put matching to null if it was the same !!
+                    matchingSubLocation?.apply {
+                        if (idSub == subLocationToDelete.idSub) {
+                            matchingSubLocation = null
+                            notifyPropertyChanged(BR.matchingSubLocation)
+                        }
+                    }
+                }
+            }
         }
     }
 }

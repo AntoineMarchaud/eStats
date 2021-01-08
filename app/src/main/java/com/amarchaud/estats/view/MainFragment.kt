@@ -7,13 +7,15 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
 import com.amarchaud.estats.adapter.LocationInfoItem
 import com.amarchaud.estats.adapter.LocationInfoSubItem
-import com.amarchaud.estats.databinding.ItemSubLocationBinding
+import com.amarchaud.estats.adapter.decoration.SwipeTouchCallback
 import com.amarchaud.estats.databinding.MainFragmentBinding
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.popup.CurrentLocationPopup
@@ -21,8 +23,11 @@ import com.amarchaud.estats.viewmodel.MainViewModel
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
+import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.main_fragment.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.runBlocking
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -67,12 +72,13 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             }
 
             with(recyclerviewItems) {
-                layoutManager =
-                    LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-
-                // pour eviter le blink quand item est modifié
-                (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false;
+                layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
                 adapter = groupAdapter
+
+                // avoid blink when item is modified
+                (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false;
+
+                ItemTouchHelper(touchCallback).attachToRecyclerView(this)
             }
         }
 
@@ -105,13 +111,21 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             }
         })
 
-        fun makeMaker(lat: Double, lon: Double, name: String?) {
+        fun addMarker(lat: Double, lon: Double, name: String?) {
             val oneMarker = Marker(mapView)
             oneMarker.position = GeoPoint(lat, lon)
             oneMarker.title = name
             oneMarker.setTextIcon(name) // displayed on screen
             oneMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
             mapView.overlays.add(oneMarker)
+        }
+
+        fun removeMarker(lat: Double, lon: Double, name: String?) {
+            mapView.overlays.firstOrNull {
+                if (it is Marker) (it.position.latitude == lat && it.position.longitude == lon && it.title == name) else false
+            }?.let {
+                mapView.overlays.remove(it)
+            }
         }
 
         // at startup
@@ -124,24 +138,9 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             val type = oneLocationWithSubs.second
             val position = oneLocationWithSubs.third
 
-            // principal
-            with(locationWithSubs) {
-
-                with(this.locationInfo) {
-                    makeMaker(lat, lon, name)
-                }
-
-                // secondaire
-                with(this.subLocation) {
-                    forEach {
-                        // todo
-                    }
-                }
-            }
-
             // update groupieView
             when (type) {
-                MainViewModel.Companion.typeItem.ITEM_INSERTED -> {
+                MainViewModel.Companion.TypeItem.ITEM_INSERTED -> {
 
                     val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo)
                     val expandableLocationWithSub = ExpandableGroup(header)
@@ -150,11 +149,39 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     }
                     groupAdapter.add(expandableLocationWithSub)
                     groupAdapter.notifyItemInserted(position)
+
+                    // add markers
+                    with(locationWithSubs) {
+
+                        with(this.locationInfo) {
+                            addMarker(lat, lon, name)
+                        }
+
+                        // secondaire
+                        with(this.subLocation) {
+                            forEach {
+                                // todo
+                            }
+                        }
+                    }
                 }
-                MainViewModel.Companion.typeItem.ITEM_DELETED -> {
-                    // todo
-                    //groupAdapter.remove
-                    groupAdapter.notifyItemRemoved(position)
+                MainViewModel.Companion.TypeItem.ITEM_DELETED -> {
+                    groupAdapter.remove(groupAdapter.getGroupAtAdapterPosition(position))
+
+                    // remove markers
+                    with(locationWithSubs) {
+
+                        with(this.locationInfo) {
+                            removeMarker(lat, lon, name)
+                        }
+
+                        // secondaire
+                        with(this.subLocation) {
+                            forEach {
+                                // todo
+                            }
+                        }
+                    }
                 }
             }
         })
@@ -170,29 +197,24 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             // principal
             with(locationInfo) {
-                makeMaker(lat, lon, name)
+                addMarker(lat, lon, name)
             }
 
             // update groupieView
             when (type) {
-                MainViewModel.Companion.typeHeaderItem.ITEM_INSERTED -> {
+                MainViewModel.Companion.TypeHeaderItem.ITEM_INSERTED -> {
                     val header = LocationInfoItem(this@MainFragment, locationInfo)
                     val expandableLocationWithSub = ExpandableGroup(header)
                     groupAdapter.add(expandableLocationWithSub)
                     groupAdapter.notifyItemInserted(oneLocation.third)
                 }
-                MainViewModel.Companion.typeHeaderItem.ITEM_MODIFIED -> {
+                MainViewModel.Companion.TypeHeaderItem.ITEM_MODIFIED -> {
                     val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(position) as ExpandableGroup
                     // expandableLocationWithSub.getGroup(0) = header
                     (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
                         this.locationInfo = locationInfo
                         notifyChanged()
                     }
-                    groupAdapter.notifyItemChanged(oneLocation.third)
-                }
-                MainViewModel.Companion.typeHeaderItem.ITEM_DELETED -> {
-                    // todo
-                    //groupAdapter.remove
                     groupAdapter.notifyItemChanged(oneLocation.third)
                 }
             }
@@ -214,12 +236,12 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             // update groupieView
             when (type) {
-                MainViewModel.Companion.typeSubItem.ITEM_INSERTED -> {
+                MainViewModel.Companion.TypeSubItem.ITEM_INSERTED -> {
                     val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
                     expandableLocationWithSub.add(LocationInfoSubItem(locationInfoSub))
                     groupAdapter.notifyItemChanged(indexMain)
                 }
-                MainViewModel.Companion.typeSubItem.ITEM_MODIFIED -> {
+                MainViewModel.Companion.TypeSubItem.ITEM_MODIFIED -> {
                     val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
                     // expandableLocationWithSub.getGroup(0) = header
                     (expandableLocationWithSub.getGroup(1 + indexSub) as LocationInfoSubItem).apply {
@@ -227,7 +249,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                         notifyChanged()
                     }
                 }
-                MainViewModel.Companion.typeSubItem.ITEM_DELETED -> {
+                MainViewModel.Companion.TypeSubItem.ITEM_DELETED -> {
                     // todo
                 }
             }
@@ -291,6 +313,28 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
     override fun onCurrentLocationDialogListenerNegativeClick() {
         closeFABMenu()
+    }
+
+
+    private val touchCallback: TouchCallback by lazy {
+        object : SwipeTouchCallback() {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val item = groupAdapter.getItem(viewHolder.adapterPosition)
+
+                when (item) {
+                    is LocationInfoItem -> viewModel.deleteItem(item.locationInfo)
+                    is LocationInfoSubItem -> viewModel.deleteSubItem(item.locationInfoSub)
+                }
+            }
+        }
     }
 
 
