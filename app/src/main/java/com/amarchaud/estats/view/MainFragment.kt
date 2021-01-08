@@ -182,7 +182,12 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     groupAdapter.notifyItemInserted(oneLocation.third)
                 }
                 MainViewModel.Companion.typeHeaderItem.ITEM_MODIFIED -> {
-                    (groupAdapter.getItem(position) as LocationInfoItem).locationInfo = locationInfo
+                    val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(position) as ExpandableGroup
+                    // expandableLocationWithSub.getGroup(0) = header
+                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
+                        this.locationInfo = locationInfo
+                        notifyChanged()
+                    }
                     groupAdapter.notifyItemChanged(oneLocation.third)
                 }
                 MainViewModel.Companion.typeHeaderItem.ITEM_DELETED -> {

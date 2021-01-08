@@ -1,6 +1,7 @@
 package com.amarchaud.estats.adapter
 
 import android.content.Context
+import android.graphics.drawable.Animatable
 import android.view.View
 import android.widget.Toast
 import com.amarchaud.estats.R
@@ -57,10 +58,13 @@ class LocationInfoItem(
                 }
             }
 
-            icExpand.setImageResource(if (expandableGroup.isExpanded) R.drawable.ic_expanded_indicator else R.drawable.ic_collapsed_indicator)
+            icExpand.visibility = View.VISIBLE
+            icExpand.setImageResource(if (expandableGroup.isExpanded) R.drawable.ic_collapse else R.drawable.ic_expand)
             icExpand.setOnClickListener {
                 expandableGroup.onToggleExpanded()
-                viewBinding.icExpand.setImageResource(if (expandableGroup.isExpanded) R.drawable.ic_expanded_indicator else R.drawable.ic_collapsed_indicator)
+                viewBinding.icExpand.setImageResource(if (expandableGroup.isExpanded) R.drawable.ic_collapse_animated else R.drawable.ic_expand_animated)
+                val drawable = icExpand.drawable as Animatable
+                drawable.start()
             }
         }
     }
