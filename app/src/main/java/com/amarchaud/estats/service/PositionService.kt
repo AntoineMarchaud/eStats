@@ -48,8 +48,8 @@ class PositionService : Service() {
     var geoLoc: android.location.Location? = null
         private set
 
-    var matchingLocationWithSubs: LocationWithSubs? = null
-        private set
+    //var matchingLocationWithSubs: LocationWithSubs? = null
+    //   private set
 
     var matchingLocation: LocationInfo? = null
         private set
@@ -151,24 +151,9 @@ class PositionService : Service() {
 
 
                 GlobalScope.launch {
-                    val bestLoc = myDao.getBetterLocation(
-                        location.latitude,
-                        location.longitude
-                    )
-                    val bestSubLoc = myDao.getBetterSubLocation(
-                        location.latitude,
-                        location.longitude
-                    )
-                    val bestLocWithSub = myDao.getBetterLocationWithSubs(
-                        location.latitude,
-                        location.longitude
-                    )
 
-                    if (bestLocWithSub == null) {
-                        matchingLocation = null
-                        matchingSubLocation = null
-                        matchingLocationWithSubs = null
-                    } else {
+                    // update matchingLocation
+                    val bestLoc = myDao.getBetterLocation(location.latitude, location.longitude)?.also {
 
                         val lastSave = sharedPref.getLong(
                             getString(R.string.saved_current_time_ms),
@@ -176,21 +161,20 @@ class PositionService : Service() {
                         )
                         val inc = System.currentTimeMillis() - lastSave
 
-                        bestLoc?.let { locationInfo ->
-                            locationInfo.duration_day += inc
-                            myDao.update(locationInfo)
-                            Log.d(TAG, "Matching Location : ${locationInfo.name ?: "none"}")
-                        }
-                        matchingLocation = bestLoc
+                        it.duration_day += inc
+                        myDao.update(it)
+                        Log.d(TAG, "Matching Location : ${it.name ?: "none"}")
 
-                        bestSubLoc?.let { locationSubInfo ->
-                            locationSubInfo.duration_day += inc
-                            myDao.update(locationSubInfo)
-                            Log.d(TAG, "Matching sub Location : ${locationSubInfo.name ?: "none"}")
+                        // Update matchingSubLocation
+                        val bestSubLoc = myDao.getBetterSubLocation(
+                            location.latitude,
+                            location.longitude
+                        )?.also {
+                            it.duration_day += inc
+                            myDao.update(it)
+                            Log.d(TAG, "Matching sub Location : ${it.name ?: "none"}")
                         }
                         matchingSubLocation = bestSubLoc
-
-                        matchingLocationWithSubs = bestLocWithSub
 
                         with(sharedPref.edit()) {
                             putLong(
@@ -199,7 +183,9 @@ class PositionService : Service() {
                             )
                             apply()
                         }
+
                     }
+                    matchingLocation = bestLoc
                 }
             }
         }
