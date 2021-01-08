@@ -186,6 +186,8 @@ class PositionService : Service() {
 
                     }
                     matchingLocation = bestLoc
+                    if(bestLoc == null)
+                        matchingSubLocation = null
                 }
             }
         }
