@@ -24,7 +24,6 @@ import com.amarchaud.estats.model.entity.LocationInfoSub
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.service.PositionService
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
@@ -47,7 +46,6 @@ class MainViewModel @ViewModelInject constructor(
         }
 
         enum class TypeHeaderItem {
-            ITEM_INSERTED,
             ITEM_MODIFIED
         }
 
@@ -77,9 +75,11 @@ class MainViewModel @ViewModelInject constructor(
     private var listOfLocationWithSubs: MutableList<LocationWithSubs> = mutableListOf()
 
     // we can emit 3 different datas
-    val oneLocation: MutableLiveData<Triple<LocationInfo, TypeHeaderItem, Int>> = MutableLiveData()
-    val oneSubLocation: MutableLiveData<Triple<LocationInfoSub, TypeSubItem, Pair<Int, Int>>> = MutableLiveData()
-    val oneLocationWithSub: MutableLiveData<Triple<LocationWithSubs, TypeItem, Int>> = MutableLiveData()
+    val oneLocation: SingleLiveEvent<Triple<LocationInfo, TypeHeaderItem, Int>> = SingleLiveEvent()
+    val oneSubLocation: SingleLiveEvent<Triple<LocationInfoSub, TypeSubItem, Pair<Int, Int>>> = SingleLiveEvent()
+    val oneLocationWithSub: SingleLiveEvent<Triple<LocationWithSubs, TypeItem, Int>> = SingleLiveEvent()
+
+    val allLocationsWithSub: MutableLiveData<List<LocationWithSubs>> = MutableLiveData()
 
     val popupAddCurrentPosition: SingleLiveEvent<Location> = SingleLiveEvent()
 
@@ -170,14 +170,11 @@ class MainViewModel @ViewModelInject constructor(
         }
 
         /**
-         * Add all at startup
+         * Add all at startup or onSavedInstance/onRestoreInstance
          */
         viewModelScope.launch {
-            myDao.getAllLocationsWithSubs().forEach {
-                Log.d(TAG, "Init Add location : $it")
-                listOfLocationWithSubs.add(it)
-                oneLocationWithSub.value = Triple(it, TypeItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1)
-            }
+            listOfLocationWithSubs = myDao.getAllLocationsWithSubs().toMutableList()
+            allLocationsWithSub.postValue(listOfLocationWithSubs)
         }
     }
 
@@ -262,7 +259,7 @@ class MainViewModel @ViewModelInject constructor(
                 Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
 
                 listOfLocationWithSubs.add(ls)
-                oneLocation.postValue(Triple(ls.locationInfo, TypeHeaderItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1))
+                oneLocationWithSub.postValue(Triple(ls, TypeItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1))
             }
         } else { // it is a new sub location to add !
 

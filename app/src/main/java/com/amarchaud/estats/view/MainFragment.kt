@@ -137,6 +137,37 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
         })
 
 
+        viewModel.allLocationsWithSub.observe(viewLifecycleOwner, { allLocationsWithSubs ->
+
+            allLocationsWithSubs.forEach { locationWithSubs ->
+
+                val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo)
+                val expandableLocationWithSub = ExpandableGroup(header)
+                locationWithSubs.subLocation.forEach {
+                    expandableLocationWithSub.add(LocationInfoSubItem(it))
+                }
+                groupAdapter.add(expandableLocationWithSub)
+
+                // add markers
+                with(locationWithSubs) {
+
+                    with(this.locationInfo) {
+                        mapView.addMarker(lat, lon, name)
+                    }
+
+                    // todo add subitem marker ?
+                    with(this.subLocation) {
+                        forEach {
+
+                        }
+                    }
+                }
+            }
+
+            groupAdapter.notifyDataSetChanged()
+        })
+
+
         // at startup
         viewModel.oneLocationWithSub.observe(viewLifecycleOwner, { oneLocationWithSubs ->
 
@@ -207,16 +238,6 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             // update groupieView
             when (type) {
-                MainViewModel.Companion.TypeHeaderItem.ITEM_INSERTED -> {
-                    val header = LocationInfoItem(this@MainFragment, locationInfo)
-                    val expandableLocationWithSub = ExpandableGroup(header)
-                    groupAdapter.add(expandableLocationWithSub)
-                    groupAdapter.notifyItemInserted(position)
-
-                    with(locationInfo) {
-                        mapView.addMarker(lat, lon, name)
-                    }
-                }
                 MainViewModel.Companion.TypeHeaderItem.ITEM_MODIFIED -> {
                     val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(position) as ExpandableGroup
                     // expandableLocationWithSub.getGroup(0) = header
