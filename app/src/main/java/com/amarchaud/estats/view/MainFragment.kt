@@ -30,6 +30,9 @@ import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
 import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapListener
+import org.osmdroid.events.ScrollEvent
+import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
@@ -49,6 +52,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
     // Marker of my position
     private var myPositionMarker: Marker? = null
+    private var mAutoCentered = true
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     override fun onCreateView(
@@ -72,8 +76,21 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     val geoPoint = GeoPoint(latitude, longitude)
                     mapView.controller.setCenter(geoPoint)
                     mapView.controller.animateTo(geoPoint)
+                    mAutoCentered = true
                 }
             }
+
+            mapView.addMapListener(object : MapListener {
+                override fun onScroll(event: ScrollEvent?): Boolean {
+                    mAutoCentered = false
+                    return true
+                }
+
+                override fun onZoom(event: ZoomEvent?): Boolean {
+                    return true
+                }
+
+            })
 
             with(recyclerviewItems) {
                 layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
@@ -104,8 +121,10 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             // update map
             val geoPoint = GeoPoint(location.latitude, location.longitude)
-            mapView.controller.setCenter(geoPoint)
-            mapView.controller.animateTo(geoPoint)
+            if (mAutoCentered) {
+                mapView.controller.setCenter(geoPoint)
+                mapView.controller.animateTo(geoPoint)
+            }
             mapView.overlays.remove(myPositionMarker)
 
             myPositionMarker?.let { marker ->
@@ -337,7 +356,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
 
-                if(direction == ItemTouchHelper.LEFT) {
+                if (direction == ItemTouchHelper.LEFT) {
                     when (val item = groupAdapter.getItem(viewHolder.adapterPosition)) {
                         is LocationInfoItem -> viewModel.deleteItem(item.locationInfo)
                         is LocationInfoSubItem -> viewModel.deleteSubItem(item.locationInfoSub)
