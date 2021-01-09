@@ -206,7 +206,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     }
                 }
                 MainViewModel.Companion.TypeItem.ITEM_DELETED -> {
-                    groupAdapter.remove(groupAdapter.getGroupAtAdapterPosition(position))
+                    groupAdapter.remove(groupAdapter.getTopLevelGroup(position))
                     // no need of  ??? groupAdapter.notifyItemRemoved(position)
 
                     // remove markers
