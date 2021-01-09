@@ -221,7 +221,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                         this.locationInfo = locationInfo
                         notifyChanged()
                     }
-                    groupAdapter.notifyItemChanged(position)
+                    expandableLocationWithSub.notifyItemChanged(0)
                 }
             }
         })

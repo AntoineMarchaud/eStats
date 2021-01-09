@@ -117,6 +117,9 @@ class MainViewModel @ViewModelInject constructor(
                             }
                             if (pos >= 0) {
                                 oneLocation.postValue(Triple(ml, TypeHeaderItem.ITEM_MODIFIED, pos))
+                            } else {
+                                matchingLocation = null
+                                notifyPropertyChanged(BR.matchingLocation)
                             }
                         }
 
@@ -140,6 +143,9 @@ class MainViewModel @ViewModelInject constructor(
                                 if (posSub >= 0) {
                                     oneSubLocation.postValue(Triple(subloc, TypeSubItem.ITEM_MODIFIED, Pair(pos, posSub)))
                                 }
+                            } else {
+                                matchingSubLocation = null
+                                notifyPropertyChanged(BR.matchingSubLocation)
                             }
                         }
 
@@ -298,12 +304,6 @@ class MainViewModel @ViewModelInject constructor(
                 viewModelScope.launch {
                     myDao.delete(it)
 
-                    // remove from local list
-                    listOfLocationWithSubs.removeAt(position)
-
-                    // refresh view
-                    oneLocationWithSub.postValue(Triple(it, TypeItem.ITEM_DELETED, position))
-
                     // put matching to null if it was the same !!
                     matchingLocation?.apply {
                         if (id == locationToDelete.id) {
@@ -313,6 +313,12 @@ class MainViewModel @ViewModelInject constructor(
                             notifyPropertyChanged(BR.matchingSubLocation)
                         }
                     }
+
+                    // remove from local list
+                    listOfLocationWithSubs.removeAt(position)
+
+                    // refresh view
+                    oneLocationWithSub.postValue(Triple(it, TypeItem.ITEM_DELETED, position))
                 }
             }
         }
@@ -335,12 +341,6 @@ class MainViewModel @ViewModelInject constructor(
                                 // remove from db
                                 myDao.delete(subLocationToDelete)
 
-                                // remove from local list
-                                locationWithSubs.subLocation.removeAt(positionSub)
-
-                                // refresh view
-                                oneSubLocation.postValue(Triple(subLocationToDelete, TypeSubItem.ITEM_DELETED, Pair(mainPosition, positionSub)))
-
                                 // put matching to null if it was the same !!
                                 matchingSubLocation?.apply {
                                     if (idSub == subLocationToDelete.idSub) {
@@ -348,7 +348,13 @@ class MainViewModel @ViewModelInject constructor(
                                         notifyPropertyChanged(BR.matchingSubLocation)
                                     }
                                 }
-                            }
+
+                                // remove from local list
+                                locationWithSubs.subLocation.removeAt(positionSub)
+
+                                // refresh view
+                                oneSubLocation.postValue(Triple(subLocationToDelete, TypeSubItem.ITEM_DELETED, Pair(mainPosition, positionSub)))
+                                                            }
                         }
                     }
                 }

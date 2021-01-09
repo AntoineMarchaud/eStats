@@ -6,11 +6,11 @@ import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.amarchaud.estats.R
-import com.amarchaud.estats.bindingadapter.TimeTransformation
 import com.amarchaud.estats.databinding.ItemLocationBinding
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.popup.CurrentLocationPopup
 import com.amarchaud.estats.utils.Distance
+import com.amarchaud.estats.utils.TimeTransformation
 import com.amarchaud.estats.view.MainFragment
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.ExpandableItem
@@ -38,7 +38,7 @@ class LocationInfoItem(
             name.text = locationInfo.name
             subLat.text = java.lang.String.valueOf(locationInfo.lat)
             subLon.text = java.lang.String.valueOf(locationInfo.lon)
-            TimeTransformation.setOnImageLoadFromUrl(subDuration, locationInfo.duration_day)
+            subDuration.text = TimeTransformation.MillisecondToTimeStr(locationInfo.duration_day)
 
             icAddSub.setOnClickListener {
 
@@ -71,7 +71,7 @@ class LocationInfoItem(
     }
 
     // delete item if swipe to left!
-    override fun getSwipeDirs(): Int  = ItemTouchHelper.LEFT
+    override fun getSwipeDirs(): Int = ItemTouchHelper.LEFT
 
     override fun setExpandableGroup(onToggleListener: ExpandableGroup) {
         this.expandableGroup = onToggleListener
