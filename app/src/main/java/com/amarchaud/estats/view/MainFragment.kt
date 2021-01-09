@@ -336,11 +336,12 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val item = groupAdapter.getItem(viewHolder.adapterPosition)
 
-                when (item) {
-                    is LocationInfoItem -> viewModel.deleteItem(item.locationInfo)
-                    is LocationInfoSubItem -> viewModel.deleteSubItem(item.locationInfoSub)
+                if(direction == ItemTouchHelper.LEFT) {
+                    when (val item = groupAdapter.getItem(viewHolder.adapterPosition)) {
+                        is LocationInfoItem -> viewModel.deleteItem(item.locationInfo)
+                        is LocationInfoSubItem -> viewModel.deleteSubItem(item.locationInfoSub)
+                    }
                 }
             }
         }
