@@ -29,4 +29,8 @@
     <string name="addNewPositionTitle">Add a new position</string>
     <string name="addSubLocation">Add a new sublocation to :</string>
     <string name="newSubLocationName">New sub location name</string>
+    <!-- Service -->
+    <string name="foregroundTitle">eStats</string>
+    <string name="foregroundContext">The app needs your local position when it is in background.</string>
+    <string name="foregroundActionButton">Stop that !</string>
 </resources>

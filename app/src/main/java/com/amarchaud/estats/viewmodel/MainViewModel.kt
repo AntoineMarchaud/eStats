@@ -1,21 +1,28 @@
 package com.amarchaud.estats.viewmodel
 
 import android.app.Application
+import android.app.Notification
+import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.drawable.Icon
 import android.location.Location
+import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.databinding.Bindable
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavDeepLinkBuilder
 import com.amarchaud.estats.BR
+import com.amarchaud.estats.R
 import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.model.database.AppDao
@@ -184,6 +191,7 @@ class MainViewModel @ViewModelInject constructor(
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as PositionService.LocalBinder
             mPositionService = binder.getService()
+            mPositionService?.createNotificationForegroundService()
             bound = true
         }
 
@@ -351,7 +359,7 @@ class MainViewModel @ViewModelInject constructor(
 
                                 // refresh view
                                 oneSubLocation.postValue(Triple(subLocationToDelete, TypeSubItem.ITEM_DELETED, Pair(mainPosition, positionSub)))
-                                                            }
+                            }
                         }
                     }
                 }

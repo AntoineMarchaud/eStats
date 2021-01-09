@@ -1,22 +1,22 @@
 package com.amarchaud.estats.service
 
 import android.Manifest
-import android.app.Application
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.os.Binder
-import android.os.IBinder
-import android.os.Looper
+import android.graphics.drawable.Icon
+import android.os.*
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.graphics.drawable.IconCompat
+import androidx.navigation.NavDeepLinkBuilder
 import com.amarchaud.estats.R
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.entity.LocationInfoSub
-import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
@@ -30,7 +30,9 @@ class PositionService : Service() {
     companion object {
         const val TAG = "PositionService"
         const val CHANNEL_ID = "channelIdService"
+        const val ONGOING_NOTIFICATION_ID = 1
         const val UPDATE_TIME = 1000L // in milli
+        const val ACTION_CLOSE_FOREGROUND = "ACTION_CLOSE_FOREGROUND"
     }
 
     @Inject
@@ -112,6 +114,8 @@ class PositionService : Service() {
                 Looper.getMainLooper()
             )
         }
+
+        createNotificationChannel()
     }
 
     override fun onDestroy() {
@@ -122,10 +126,54 @@ class PositionService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
+
+        if (ACTION_CLOSE_FOREGROUND == intent?.action) {
+            stopForeground(true) // remove notification, but service continues to work
+        }
+
         // If we get killed, after returning from here, restart
         return START_STICKY
     }
 
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val serviceChannel = NotificationChannel(CHANNEL_ID, "Foreground Service Channel", NotificationManager.IMPORTANCE_DEFAULT)
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(serviceChannel)
+        }
+    }
+
+
+    /**
+     * Launch ForegroundService (the notification on the top of the screen)
+     */
+    fun createNotificationForegroundService() {
+        // ********************* start notification of foreground service ***************************** //
+        // display MainFragment quand on clique sur la notif
+        val pendingIntent = NavDeepLinkBuilder(this)
+            .setGraph(R.navigation.nav_graph)
+            .setDestination(R.id.mainFragment)
+            .createPendingIntent()
+
+        //
+        val stopSelf = Intent(this, PositionService::class.java)
+        stopSelf.action = ACTION_CLOSE_FOREGROUND
+        val stopSelfPendingIntent = PendingIntent.getService(this, 0, stopSelf, 0) // That you should change this part in your code
+
+        val icon = IconCompat.createWithResource(this, R.drawable.ic_expand)
+        val action: NotificationCompat.Action = NotificationCompat.Action.Builder(icon, getString(R.string.foregroundActionButton), stopSelfPendingIntent).build()
+
+        val notification: Notification = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) NotificationCompat.Builder(this, CHANNEL_ID) else NotificationCompat.Builder(this))
+            .setContentTitle(getString(R.string.foregroundTitle))
+            .setContentText(getString(R.string.foregroundContext))
+            .setSmallIcon(R.drawable.ic_collapse)
+            .setContentIntent(pendingIntent)
+            .addAction(action)
+            .setSound(null)
+            .build()
+        startForeground(ONGOING_NOTIFICATION_ID, notification)
+        // *********************************************************************
+    }
 
     private var mLocationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {

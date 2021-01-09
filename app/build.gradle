@@ -58,10 +58,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
-    //rxjava
-    implementation "io.reactivex.rxjava3:rxjava:$rx_java"
-    implementation "io.reactivex.rxjava3:rxandroid:$rx_android"
-
     // LiveData & ViewModel (Mvvm)
     implementation "android.arch.lifecycle:extensions:2.2.0"
 
