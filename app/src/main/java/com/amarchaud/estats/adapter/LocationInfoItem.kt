@@ -16,6 +16,9 @@ import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.ExpandableItem
 import com.xwray.groupie.viewbinding.BindableItem
 
+/**
+ * Example with ViewBinding only
+ */
 class LocationInfoItem(
     private var fragment: MainFragment,
     var locationInfo: LocationInfo

@@ -153,7 +153,7 @@ class PositionService : Service() {
                 GlobalScope.launch {
 
                     // update matchingLocation
-                    val bestLoc = myDao.getBetterLocation(location.latitude, location.longitude)?.also {
+                    val bestLoc = myDao.getBetterLocation(location.latitude, location.longitude)?.also { locationInfo ->
 
                         val lastSave = sharedPref.getLong(
                             getString(R.string.saved_current_time_ms),
@@ -161,18 +161,16 @@ class PositionService : Service() {
                         )
                         val inc = System.currentTimeMillis() - lastSave
 
-                        it.duration_day += inc
-                        myDao.update(it)
-                        Log.d(TAG, "Matching Location : ${it.name ?: "none"}")
+                        myDao.updateLocationDuration(locationInfo.id, inc)
+                        Log.d(TAG, "Matching Location : ${locationInfo.name ?: "none"}")
 
                         // Update matchingSubLocation
                         val bestSubLoc = myDao.getBetterSubLocation(
                             location.latitude,
                             location.longitude
-                        )?.also {
-                            it.duration_day += inc
-                            myDao.update(it)
-                            Log.d(TAG, "Matching sub Location : ${it.name ?: "none"}")
+                        )?.also { locationSubInfo ->
+                            myDao.updateSubLocationDuration(locationSubInfo.idSub!!, inc)
+                            Log.d(TAG, "Matching sub Location : ${locationSubInfo.name ?: "none"}")
                         }
                         matchingSubLocation = bestSubLoc
 
@@ -186,7 +184,7 @@ class PositionService : Service() {
 
                     }
                     matchingLocation = bestLoc
-                    if(bestLoc == null)
+                    if (bestLoc == null)
                         matchingSubLocation = null
                 }
             }

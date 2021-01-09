@@ -22,6 +22,29 @@ interface AppDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(locationInfoSub: LocationInfoSub)
 
+    suspend fun updateLocationDuration(id: Int, inc: Long = 1000) {
+        getOneLocation(id).apply {
+            duration_day += inc
+            duration_week += inc
+            duration_month += inc
+            duration_year += inc
+            duration_all_time += inc
+            update(this)
+        }
+    }
+
+    @Transaction
+    suspend fun updateSubLocationDuration(idSub: Int, inc: Long = 1000) {
+        getOneSubLocation(idSub).apply {
+            duration_day += inc
+            duration_week += inc
+            duration_month += inc
+            duration_year += inc
+            duration_all_time += inc
+            update(this)
+        }
+    }
+
     @Transaction
     suspend fun delete(toDelete: LocationWithSubs) {
         toDelete.subLocation.forEach {
@@ -35,7 +58,6 @@ interface AppDao {
 
     @Delete
     suspend fun delete(toDelete: LocationInfoSub)
-
 
 
     // Location

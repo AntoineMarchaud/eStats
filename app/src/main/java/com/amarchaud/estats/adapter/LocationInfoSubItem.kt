@@ -7,6 +7,9 @@ import com.amarchaud.estats.databinding.ItemSubLocationBinding
 import com.amarchaud.estats.model.entity.LocationInfoSub
 import com.xwray.groupie.viewbinding.BindableItem
 
+/**
+ * Example with DataBinding only
+ */
 class LocationInfoSubItem(var locationInfoSub: LocationInfoSub) :
     BindableItem<ItemSubLocationBinding>() {
 
