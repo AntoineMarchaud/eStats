@@ -133,11 +133,13 @@ class MainViewModel @ViewModelInject constructor(
                                 it.locationInfo.id == subloc.idMain
                             }
 
-                            val posSub = listOfLocationWithSubs[pos].subLocation.indexOfFirst {
-                                it.idSub == subloc.idSub
-                            }
-                            if (posSub >= 0) {
-                                oneSubLocation.postValue(Triple(subloc, TypeSubItem.ITEM_MODIFIED, Pair(pos, posSub)))
+                            if (pos >= 0) {
+                                val posSub = listOfLocationWithSubs[pos].subLocation.indexOfFirst {
+                                    it.idSub == subloc.idSub
+                                }
+                                if (posSub >= 0) {
+                                    oneSubLocation.postValue(Triple(subloc, TypeSubItem.ITEM_MODIFIED, Pair(pos, posSub)))
+                                }
                             }
                         }
 
@@ -297,7 +299,7 @@ class MainViewModel @ViewModelInject constructor(
                     myDao.delete(it)
 
                     // remove from local list
-                    listOfLocationWithSubs.remove(it)
+                    listOfLocationWithSubs.removeAt(position)
 
                     // refresh view
                     oneLocationWithSub.postValue(Triple(it, TypeItem.ITEM_DELETED, position))
@@ -321,23 +323,32 @@ class MainViewModel @ViewModelInject constructor(
         listOfLocationWithSubs.indexOfFirst {
             it.locationInfo.id == subLocationToDelete.idMain
         }.let { mainPosition ->
+            if (mainPosition >= 0) {
+                listOfLocationWithSubs[mainPosition].let { locationWithSubs ->
 
-            listOfLocationWithSubs[mainPosition].let { locationWithSubs ->
-                viewModelScope.launch {
-                    // remove from db
-                    myDao.delete(subLocationToDelete)
+                    locationWithSubs.subLocation.indexOfFirst {
+                        it.idSub == subLocationToDelete.idSub
+                    }.let { positionSub ->
 
-                    // remove from local list
-                    locationWithSubs.subLocation.remove(subLocationToDelete)
+                        if (positionSub >= 0) {
+                            viewModelScope.launch {
+                                // remove from db
+                                myDao.delete(subLocationToDelete)
 
-                    // refresh view
-                    oneSubLocation.postValue(Triple(subLocationToDelete, TypeSubItem.ITEM_DELETED, Pair(mainPosition, locationWithSubs.subLocation.indexOf(subLocationToDelete))))
+                                // remove from local list
+                                locationWithSubs.subLocation.removeAt(positionSub)
 
-                    // put matching to null if it was the same !!
-                    matchingSubLocation?.apply {
-                        if (idSub == subLocationToDelete.idSub) {
-                            matchingSubLocation = null
-                            notifyPropertyChanged(BR.matchingSubLocation)
+                                // refresh view
+                                oneSubLocation.postValue(Triple(subLocationToDelete, TypeSubItem.ITEM_DELETED, Pair(mainPosition, positionSub)))
+
+                                // put matching to null if it was the same !!
+                                matchingSubLocation?.apply {
+                                    if (idSub == subLocationToDelete.idSub) {
+                                        matchingSubLocation = null
+                                        notifyPropertyChanged(BR.matchingSubLocation)
+                                    }
+                                }
+                            }
                         }
                     }
                 }

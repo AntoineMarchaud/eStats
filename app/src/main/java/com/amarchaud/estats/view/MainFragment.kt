@@ -157,16 +157,17 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                             addMarker(lat, lon, name)
                         }
 
-                        // secondaire
+                        // todo add subitem marker ?
                         with(this.subLocation) {
                             forEach {
-                                // todo
+
                             }
                         }
                     }
                 }
                 MainViewModel.Companion.TypeItem.ITEM_DELETED -> {
                     groupAdapter.remove(groupAdapter.getGroupAtAdapterPosition(position))
+                    // no need of  ??? groupAdapter.notifyItemRemoved(position)
 
                     // remove markers
                     with(locationWithSubs) {
@@ -175,10 +176,10 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                             removeMarker(lat, lon, name)
                         }
 
-                        // secondaire
+                        // todo remove subitem marker ?
                         with(this.subLocation) {
                             forEach {
-                                // todo
+
                             }
                         }
                     }
@@ -195,18 +196,17 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             val type = oneLocation.second
             val position = oneLocation.third
 
-            // principal
-            with(locationInfo) {
-                addMarker(lat, lon, name)
-            }
-
             // update groupieView
             when (type) {
                 MainViewModel.Companion.TypeHeaderItem.ITEM_INSERTED -> {
                     val header = LocationInfoItem(this@MainFragment, locationInfo)
                     val expandableLocationWithSub = ExpandableGroup(header)
                     groupAdapter.add(expandableLocationWithSub)
-                    groupAdapter.notifyItemInserted(oneLocation.third)
+                    groupAdapter.notifyItemInserted(position)
+
+                    with(locationInfo) {
+                        addMarker(lat, lon, name)
+                    }
                 }
                 MainViewModel.Companion.TypeHeaderItem.ITEM_MODIFIED -> {
                     val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(position) as ExpandableGroup
@@ -215,7 +215,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                         this.locationInfo = locationInfo
                         notifyChanged()
                     }
-                    groupAdapter.notifyItemChanged(oneLocation.third)
+                    groupAdapter.notifyItemChanged(position)
                 }
             }
         })
@@ -229,17 +229,14 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             val indexMain = oneSubLocation.third.first
             val indexSub = oneSubLocation.third.second
 
-            // principal
-            with(locationInfoSub) {
-                // todo ?
-            }
-
             // update groupieView
             when (type) {
                 MainViewModel.Companion.TypeSubItem.ITEM_INSERTED -> {
                     val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
                     expandableLocationWithSub.add(LocationInfoSubItem(locationInfoSub))
                     groupAdapter.notifyItemChanged(indexMain)
+
+                    // todo add subitem marker ?
                 }
                 MainViewModel.Companion.TypeSubItem.ITEM_MODIFIED -> {
                     val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
@@ -250,7 +247,13 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     }
                 }
                 MainViewModel.Companion.TypeSubItem.ITEM_DELETED -> {
-                    // todo
+                    val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
+
+                    val groupToRemove = expandableLocationWithSub.getGroup(1 + indexSub)
+                    expandableLocationWithSub.remove(groupToRemove)
+                    expandableLocationWithSub.notifyItemRemoved(1 + indexSub)
+
+                    // todo remove subitem marker ?
                 }
             }
         })
