@@ -227,6 +227,9 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             }
         })
 
+        /**
+         * Only modify
+         */
         viewModel.oneLocation.observe(viewLifecycleOwner, { oneLocation ->
 
             // first = LocationInfo
@@ -239,7 +242,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             // update groupieView
             when (type) {
                 MainViewModel.Companion.TypeHeaderItem.ITEM_MODIFIED -> {
-                    val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(position) as ExpandableGroup
+                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(position) as ExpandableGroup
                     // expandableLocationWithSub.getGroup(0) = header
                     (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
                         this.locationInfo = locationInfo
@@ -262,14 +265,14 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             // update groupieView
             when (type) {
                 MainViewModel.Companion.TypeSubItem.ITEM_INSERTED -> {
-                    val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
+                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
                     expandableLocationWithSub.add(LocationInfoSubItem(locationInfoSub))
                     groupAdapter.notifyItemChanged(indexMain)
 
                     // todo add subitem marker ?
                 }
                 MainViewModel.Companion.TypeSubItem.ITEM_MODIFIED -> {
-                    val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
+                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
                     // expandableLocationWithSub.getGroup(0) = header
                     (expandableLocationWithSub.getGroup(1 + indexSub) as LocationInfoSubItem).apply {
                         this.locationInfoSub = locationInfoSub
@@ -277,7 +280,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     }
                 }
                 MainViewModel.Companion.TypeSubItem.ITEM_DELETED -> {
-                    val expandableLocationWithSub = groupAdapter.getGroupAtAdapterPosition(indexMain) as ExpandableGroup
+                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
 
                     val groupToRemove = expandableLocationWithSub.getGroup(1 + indexSub)
                     expandableLocationWithSub.remove(groupToRemove)
