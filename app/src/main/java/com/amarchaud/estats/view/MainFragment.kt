@@ -18,6 +18,8 @@ import com.amarchaud.estats.adapter.LocationInfoItem
 import com.amarchaud.estats.adapter.LocationInfoSubItem
 import com.amarchaud.estats.adapter.decoration.SwipeTouchCallback
 import com.amarchaud.estats.databinding.MainFragmentBinding
+import com.amarchaud.estats.extension.addMarker
+import com.amarchaud.estats.extension.removeMarker
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.popup.CurrentLocationPopup
 import com.amarchaud.estats.viewmodel.MainViewModel
@@ -134,24 +136,6 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             }
         })
 
-        fun addMarker(lat: Double, lon: Double, name: String?) {
-            val oneMarker = Marker(mapView)
-            oneMarker.position = GeoPoint(lat, lon)
-            oneMarker.title = name
-            oneMarker.setTextIcon(name) // displayed on screen
-            oneMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            val added = mapView.overlays.add(oneMarker)
-            Log.d(TAG, "Marker added : $name $added")
-        }
-
-        fun removeMarker(lat: Double, lon: Double, name: String?) {
-            mapView.overlays.firstOrNull {
-                if (it is Marker) (it.position.latitude == lat && it.position.longitude == lon && it.title == name) else false
-            }?.let {
-                val removed = mapView.overlays.remove(it)
-                Log.d(TAG, "Marker removed : $name $removed")
-            }
-        }
 
         // at startup
         viewModel.oneLocationWithSub.observe(viewLifecycleOwner, { oneLocationWithSubs ->
@@ -179,7 +163,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     with(locationWithSubs) {
 
                         with(this.locationInfo) {
-                            addMarker(lat, lon, name)
+                            mapView.addMarker(lat, lon, name)
                         }
 
                         // todo add subitem marker ?
@@ -198,7 +182,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     with(locationWithSubs) {
 
                         with(this.locationInfo) {
-                            removeMarker(lat, lon, name)
+                            mapView.removeMarker(lat, lon, name)
                         }
 
                         // todo remove subitem marker ?
@@ -230,7 +214,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     groupAdapter.notifyItemInserted(position)
 
                     with(locationInfo) {
-                        addMarker(lat, lon, name)
+                        mapView.addMarker(lat, lon, name)
                     }
                 }
                 MainViewModel.Companion.TypeHeaderItem.ITEM_MODIFIED -> {
