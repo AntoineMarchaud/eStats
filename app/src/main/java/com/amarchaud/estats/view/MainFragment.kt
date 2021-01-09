@@ -1,6 +1,7 @@
 package com.amarchaud.estats.view
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -37,6 +38,10 @@ import org.osmdroid.views.overlay.Marker
 @AndroidEntryPoint
 class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListener {
 
+    companion object {
+        const val TAG = "MainFragment"
+    }
+
     private var isFABOpen: Boolean = false
     private lateinit var binding: MainFragmentBinding
 
@@ -44,7 +49,6 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
     // Marker of my position
     private var myPositionMarker: Marker? = null
-
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     override fun onCreateView(
@@ -117,14 +121,16 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             oneMarker.title = name
             oneMarker.setTextIcon(name) // displayed on screen
             oneMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            mapView.overlays.add(oneMarker)
+            val added = mapView.overlays.add(oneMarker)
+            Log.d(TAG, "Marker added : $name $added")
         }
 
         fun removeMarker(lat: Double, lon: Double, name: String?) {
             mapView.overlays.firstOrNull {
                 if (it is Marker) (it.position.latitude == lat && it.position.longitude == lon && it.title == name) else false
             }?.let {
-                mapView.overlays.remove(it)
+                val removed = mapView.overlays.remove(it)
+                Log.d(TAG, "Marker removed : $name $removed")
             }
         }
 
