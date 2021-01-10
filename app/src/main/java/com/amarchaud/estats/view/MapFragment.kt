@@ -75,8 +75,8 @@ class MapFragment : Fragment() {
                 mapController.setZoom(15.0)
                 myPositionMarker = Marker(this)
 
-                var initCenterX = 0.0
-                var initCenterY = 0.0
+                val initCenterX: Double
+                val initCenterY: Double
 
                 if (savedInstanceState != null) {
                     initCenterX = savedInstanceState.getDouble("mapCenteredX")

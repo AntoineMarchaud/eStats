@@ -83,7 +83,7 @@ class CurrentLocationDialog : DialogFragment() {
                 builder
                     .setTitle(it.getString(R.string.addNewPositionTitle))
                     .setView(binding.root)
-                    .setPositiveButton(R.string.yes) { dialog, id ->
+                    .setPositiveButton(R.string.yes) { dialog, _ ->
 
                         val result: Bundle = Bundle().apply {
                             putDouble(KEY_LAT, java.lang.Double.parseDouble(lat.text.toString()))
@@ -96,7 +96,7 @@ class CurrentLocationDialog : DialogFragment() {
                         parentFragmentManager.setFragmentResult(KEY_RESULT, result)
                         dialog?.dismiss()
                     }
-                    .setNegativeButton(R.string.cancel) { dialog, id ->
+                    .setNegativeButton(R.string.cancel) { dialog, _ ->
                         dialog?.cancel()
                     }
 

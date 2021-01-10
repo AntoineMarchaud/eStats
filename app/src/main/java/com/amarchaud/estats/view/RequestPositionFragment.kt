@@ -50,11 +50,11 @@ class RequestPositionFragment : Fragment() {
         val builder: AlertDialog.Builder = AlertDialog.Builder(requireContext())
         builder.setTitle(R.string.permissionGpsTitle)
         builder.setMessage(R.string.permissionGpsMessage)
-        builder.setPositiveButton(R.string.permissionGpsOk) { dialog, which ->
+        builder.setPositiveButton(R.string.permissionGpsOk) { dialog, _ ->
             dialog.cancel()
             openSettings()
         }
-        builder.setNegativeButton(R.string.permissionGpsCancel) { dialog, which -> dialog.cancel() }
+        builder.setNegativeButton(R.string.permissionGpsCancel) { dialog, _ -> dialog.cancel() }
         builder.show()
     }
 

@@ -18,7 +18,7 @@ fun MapView.removeMarker(lat: Double, lon: Double, name: String?) {
     this.overlays.firstOrNull {
         if (it is Marker) (it.position.latitude == lat && it.position.longitude == lon && it.title == name) else false
     }?.let {
-        val removed = this.overlays.remove(it)
+        this.overlays.remove(it)
         this.requestLayout()
     }
 }
