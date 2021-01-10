@@ -1,13 +1,13 @@
 package com.amarchaud.estats.view
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -29,8 +29,6 @@ import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.main_fragment.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.runBlocking
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapListener
 import org.osmdroid.events.ScrollEvent
@@ -54,17 +52,22 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
     // Marker of my position
     private var myPositionMarker: Marker? = null
-    private var mAutoCentered = true
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        (activity as AppCompatActivity).supportActionBar?.show()
 
+        (activity as AppCompatActivity).supportActionBar?.show()
         binding = MainFragmentBinding.inflate(inflater)
         return binding.root
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putDouble("mapCenteredX", binding.mapView.mapCenter?.latitude ?: 0.0)
+        outState.putDouble("mapCenteredY", binding.mapView.mapCenter?.longitude ?: 0.0)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -74,12 +77,10 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
         with(binding) {
 
-            centerView.setOnClickListener {
-                viewModel.myGeoLoc.value?.apply {
-                    val geoPoint = GeoPoint(latitude, longitude)
-                    mapView.controller.setCenter(geoPoint)
-                    mapView.controller.animateTo(geoPoint)
-                    mAutoCentered = true
+            with(showMapFullScreen) {
+                setOnClickListener {
+                    val direction = MainFragmentDirections.actionMainFragmentToMapFragment()
+                    Navigation.findNavController(view).navigate(direction)
                 }
             }
 
@@ -96,26 +97,29 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             with(mapView) {
 
-                addMapListener(object : MapListener {
-                    override fun onScroll(event: ScrollEvent?): Boolean {
-                        mAutoCentered = false
-                        return true
-                    }
-
-                    override fun onZoom(event: ZoomEvent?): Boolean {
-                        return true
-                    }
-
-                })
-
                 // map default config
                 Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
                 setTileSource(TileSourceFactory.MAPNIK)
                 //mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
                 setMultiTouchControls(true)
-                val mapController = mapView.controller
+                val mapController = controller
                 mapController.setZoom(15.0)
-                myPositionMarker = Marker(mapView)
+                myPositionMarker = Marker(this)
+
+                if (savedInstanceState != null) {
+
+                    val centerX = savedInstanceState.getDouble("mapCenteredX")
+                    val centerY = savedInstanceState.getDouble("mapCenteredY")
+
+                    overlays.remove(myPositionMarker)
+
+                    myPositionMarker?.let { marker ->
+                        val geoPoint = GeoPoint(centerX, centerY)
+                        marker.position = geoPoint
+                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        overlays.add(marker)
+                    }
+                }
             }
 
             with(mainFloatingActionButton) {
@@ -140,13 +144,12 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             // update map
             val geoPoint = GeoPoint(location.latitude, location.longitude)
-            if (mAutoCentered) {
-                mapView.controller.setCenter(geoPoint)
-                mapView.controller.animateTo(geoPoint)
-            }
-            mapView.overlays.remove(myPositionMarker)
+            mapView.controller.setCenter(geoPoint)
+            mapView.controller.animateTo(geoPoint)
+
 
             myPositionMarker?.let { marker ->
+                mapView.overlays.remove(myPositionMarker)
                 marker.position = geoPoint
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                 mapView.overlays.add(marker)
@@ -155,6 +158,8 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
 
         viewModel.allLocationsWithSub.observe(viewLifecycleOwner, { allLocationsWithSubs ->
+
+            groupAdapter.clear()
 
             allLocationsWithSubs.forEach { locationWithSubs ->
 
@@ -320,6 +325,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
         super.onPause()
         viewModel.onPause()
     }
+
 
     private fun showFABMenu() {
         isFABOpen = true
