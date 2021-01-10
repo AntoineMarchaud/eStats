@@ -43,7 +43,9 @@ class MainFragment : Fragment(), FragmentResultListener {
     }
 
     private var isFABOpen: Boolean = false
-    private lateinit var binding: MainFragmentBinding
+
+    private var _binding: MainFragmentBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: MainViewModel by viewModels() // replace ViewModelProvider
 
@@ -65,7 +67,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
 
         (activity as AppCompatActivity).supportActionBar?.show()
-        binding = MainFragmentBinding.inflate(inflater)
+        _binding = MainFragmentBinding.inflate(inflater)
         return binding.root
     }
 
@@ -338,6 +340,11 @@ class MainFragment : Fragment(), FragmentResultListener {
     override fun onPause() {
         super.onPause()
         viewModel.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
 

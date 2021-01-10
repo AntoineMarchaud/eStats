@@ -56,6 +56,7 @@ class CurrentLocationDialog : DialogFragment() {
 
             with(inflater.inflate(R.layout.popup_current_location, null)) {
 
+
                 if (savedInstanceState != null) {
                     subLat.text = savedInstanceState.getString(KEY_LAT)
                     subLon.text = savedInstanceState.getString(KEY_LON)

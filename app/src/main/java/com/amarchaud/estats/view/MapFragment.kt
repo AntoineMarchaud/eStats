@@ -29,7 +29,9 @@ class MapFragment : Fragment() {
         const val TAG = "MapFragment"
     }
 
-    private lateinit var binding: MapFragmentBinding
+    private var _binding: MapFragmentBinding? = null
+    private val binding get() = _binding!!
+
     private val viewModel: MapViewModel by viewModels() // replace ViewModelProvider
 
     private var myPositionMarker: Marker? = null
@@ -51,7 +53,7 @@ class MapFragment : Fragment() {
             Context.MODE_PRIVATE
         )
 
-        binding = MapFragmentBinding.inflate(inflater)
+        _binding = MapFragmentBinding.inflate(inflater)
         return binding.root
     }
 
@@ -157,6 +159,11 @@ class MapFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         viewModel.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     private fun DrawCirleAroundPosition(geoLocPos : GeoPoint, radiusInMeters : Double, color : Int) {
