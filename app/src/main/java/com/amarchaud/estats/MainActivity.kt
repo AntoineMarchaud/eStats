@@ -19,7 +19,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
         // nav host
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.my_first_host_fragment) as NavHostFragment

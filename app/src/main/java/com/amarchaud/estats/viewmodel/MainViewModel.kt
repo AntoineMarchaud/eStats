@@ -242,10 +242,10 @@ class MainViewModel @ViewModelInject constructor(
      * Callback of pop-up
      */
     // TODO : add delta !
-    fun onCurrentLocationDialogPositiveClick(lat: Double, lon: Double, nameChoosen: String, locationInfo: LocationInfo?) {
+    fun onCurrentLocationDialogPositiveClick(lat: Double, lon: Double, nameChoosen: String, idMain: Int?) {
 
         // if locationInfo is null, it is a new Location
-        if (locationInfo == null) {
+        if (idMain == null) {
             val locationInfoInserted = LocationInfo(
                 name = nameChoosen,
                 lat = lat,
@@ -268,7 +268,7 @@ class MainViewModel @ViewModelInject constructor(
                 name = nameChoosen,
                 lat = lat,
                 lon = lon,
-                idMain = locationInfo.id
+                idMain = idMain
             )
 
             // add to Database
@@ -280,7 +280,7 @@ class MainViewModel @ViewModelInject constructor(
 
                 // update current LocationInfo in the list
                 val mainIndex = listOfLocationWithSubs.indexOfFirst {
-                    it.locationInfo.id == locationInfo.id
+                    it.locationInfo.id == idMain
                 }
 
                 listOfLocationWithSubs[mainIndex].subLocation.add(ls)

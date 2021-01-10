@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.ItemLocationBinding
 import com.amarchaud.estats.model.entity.LocationInfo
-import com.amarchaud.estats.popup.CurrentLocationPopup
+import com.amarchaud.estats.popup.CurrentLocationDialog
 import com.amarchaud.estats.utils.Distance
 import com.amarchaud.estats.utils.TimeTransformation
 import com.amarchaud.estats.view.MainFragment
@@ -55,7 +55,8 @@ class LocationInfoItem(
                 // check if the user position is inside the main element :
                 if (Distance.measure(currentLat, currentLon, locationInfo.lat, locationInfo.lon) < locationInfo.delta) {
                     val fragmentManager = fragment.requireActivity().supportFragmentManager
-                    val customPopup = CurrentLocationPopup(currentLat, currentLon, locationInfo, fragment)
+                    val customPopup = CurrentLocationDialog.newInstance(currentLat, currentLon, locationInfo.id)
+                    fragment.requireActivity().supportFragmentManager.setFragmentResultListener(CurrentLocationDialog.KEY_RESULT, fragment, fragment) // get the result
                     customPopup.show(fragmentManager, "add new position")
                 } else {
                     Toast.makeText(fragment.requireContext(), "You must be in the area of the parent !", Toast.LENGTH_SHORT).show()

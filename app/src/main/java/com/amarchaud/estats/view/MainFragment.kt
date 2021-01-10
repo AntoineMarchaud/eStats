@@ -7,8 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.*
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,8 +21,7 @@ import com.amarchaud.estats.adapter.decoration.SwipeTouchCallback
 import com.amarchaud.estats.databinding.MainFragmentBinding
 import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.removeMarker
-import com.amarchaud.estats.model.entity.LocationInfo
-import com.amarchaud.estats.popup.CurrentLocationPopup
+import com.amarchaud.estats.popup.CurrentLocationDialog
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.GroupAdapter
@@ -32,16 +30,13 @@ import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.main_fragment.*
 import org.osmdroid.config.Configuration
-import org.osmdroid.events.MapListener
-import org.osmdroid.events.ScrollEvent
-import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
 
 
 @AndroidEntryPoint
-class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListener {
+class MainFragment : Fragment(), FragmentResultListener {
 
     companion object {
         const val TAG = "MainFragment"
@@ -168,7 +163,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                 marker.position = geoPoint
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
-                if(!mapView.overlays.contains(myPositionMarker))
+                if (!mapView.overlays.contains(myPositionMarker))
                     mapView.overlays.add(marker)
             }
         })
@@ -217,6 +212,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
             // update groupieView
             when (type) {
+
                 MainViewModel.Companion.TypeItem.ITEM_INSERTED -> {
 
                     val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo)
@@ -281,7 +277,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     // expandableLocationWithSub.getGroup(0) = header
                     (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
                         this.locationInfo = locationInfo
-                        //notifyChanged() // no use for parent, only for childre
+                        //notifyChanged() // no use for parent, only for children
                     }
                     expandableLocationWithSub.notifyItemChanged(0)
                 }
@@ -327,9 +323,9 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
         // just display popup
         viewModel.popupAddCurrentPosition.observe(viewLifecycleOwner, { location ->
-            val fragmentManager = requireActivity().supportFragmentManager
-            val customPopup = CurrentLocationPopup(location.latitude, location.longitude, this)
-            customPopup.show(fragmentManager, "add new position")
+            val customPopup = CurrentLocationDialog.newInstance(location.latitude, location.longitude)
+            requireActivity().supportFragmentManager.setFragmentResultListener(CurrentLocationDialog.KEY_RESULT, this, this) // get the result
+            customPopup.show(requireActivity().supportFragmentManager, "add new position")
         })
     }
 
@@ -361,23 +357,6 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
         addCustomPositionActionButton.animate().translationY(0.0f)
     }
 
-    /**
-     * Callbacks of Popup
-     */
-    override fun onCurrentLocationDialogPositiveClick(
-        lat: Double,
-        lon: Double,
-        nameChoosen: String,
-        locationInfo: LocationInfo?
-    ) {
-        viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen, locationInfo)
-        closeFABMenu()
-    }
-
-    override fun onCurrentLocationDialogListenerNegativeClick() {
-        closeFABMenu()
-    }
-
 
     private val touchCallback: TouchCallback by lazy {
         object : SwipeTouchCallback() {
@@ -398,6 +377,22 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     }
                 }
             }
+        }
+    }
+
+    override fun onFragmentResult(requestKey: String, result: Bundle) {
+        if (requestKey == CurrentLocationDialog.KEY_RESULT) {
+
+            val lat = result.getDouble(CurrentLocationDialog.KEY_LAT)
+            val lon = result.getDouble(CurrentLocationDialog.KEY_LON)
+            val nameChoosen = result.getString(CurrentLocationDialog.KEY_NAME)
+            val idMain = result.getInt(CurrentLocationDialog.KEY_ID_MAIN)
+
+            if (idMain >= 0)
+                viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, idMain)
+            else
+                viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, null)
+            closeFABMenu()
         }
     }
 }
