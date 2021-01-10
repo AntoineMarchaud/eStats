@@ -1,5 +1,7 @@
 package com.amarchaud.estats.view
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -54,10 +56,18 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
     private var myPositionMarker: Marker? = null
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
+    private lateinit var sharedPref: SharedPreferences
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
+        sharedPref = requireContext().getSharedPreferences(
+            getString(R.string.shared_pref),
+            Context.MODE_PRIVATE
+        )
+
 
         (activity as AppCompatActivity).supportActionBar?.show()
         binding = MainFragmentBinding.inflate(inflater)
@@ -100,25 +110,32 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                 // map default config
                 Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
                 setTileSource(TileSourceFactory.MAPNIK)
-                //mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
-                setMultiTouchControls(true)
-                val mapController = controller
-                mapController.setZoom(15.0)
+                setMultiTouchControls(false)
+                controller.setZoom(15.0)
                 myPositionMarker = Marker(this)
 
+                var initCenterX = 0.0
+                var initCenterY = 0.0
+
                 if (savedInstanceState != null) {
+                    initCenterX = savedInstanceState.getDouble("mapCenteredX")
+                    initCenterY = savedInstanceState.getDouble("mapCenteredY")
 
-                    val centerX = savedInstanceState.getDouble("mapCenteredX")
-                    val centerY = savedInstanceState.getDouble("mapCenteredY")
+                } else {
 
-                    overlays.remove(myPositionMarker)
+                    initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
+                    initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
+                }
 
-                    myPositionMarker?.let { marker ->
-                        val geoPoint = GeoPoint(centerX, centerY)
-                        marker.position = geoPoint
-                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                setExpectedCenter(GeoPoint(initCenterX, initCenterY))
+
+                myPositionMarker?.let { marker ->
+                    val geoPoint = GeoPoint(initCenterX, initCenterY)
+                    marker.position = geoPoint
+                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+
+                    if (!mapView.overlays.contains(myPositionMarker))
                         overlays.add(marker)
-                    }
                 }
             }
 
@@ -139,20 +156,20 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
         viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
 
             // update value
-            currentLatitude.text = java.lang.String.valueOf(location.latitude)
-            currentLongitude.text = java.lang.String.valueOf(location.longitude)
+            binding.currentLatitude.text = java.lang.String.valueOf(location.latitude)
+            binding.currentLongitude.text = java.lang.String.valueOf(location.longitude)
 
             // update map
             val geoPoint = GeoPoint(location.latitude, location.longitude)
-            mapView.controller.setCenter(geoPoint)
             mapView.controller.animateTo(geoPoint)
 
-
             myPositionMarker?.let { marker ->
-                mapView.overlays.remove(myPositionMarker)
+
                 marker.position = geoPoint
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                mapView.overlays.add(marker)
+
+                if(!mapView.overlays.contains(myPositionMarker))
+                    mapView.overlays.add(marker)
             }
         })
 
