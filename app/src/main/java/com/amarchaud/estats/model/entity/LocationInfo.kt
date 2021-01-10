@@ -9,7 +9,7 @@ import javax.annotation.Nullable
 data class LocationInfo(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") var id: Int = 0,
     @ColumnInfo(name = "name") @Nullable val name: String? = null,
-    @ColumnInfo(name = "delta") val delta: Int = 7,
+    @ColumnInfo(name = "delta") val delta: Int = 10,
     @ColumnInfo(name = "lat") val lat: Double = 0.0,
     @ColumnInfo(name = "lon") val lon: Double = 0.0,
     @ColumnInfo(name = "duration_day") var duration_day: Long = 0, // all these value in ms

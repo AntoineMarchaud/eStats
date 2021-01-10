@@ -26,14 +26,14 @@
     <!-- Shared Pref -->
     <string name="globalPref">globalPref</string>
     <string name="isFirstLaunch">isFirstLaunch</string>
-    <!-- custom popup -->
+    <!-- custom Dialog -->
     <string name="yes">Yes</string>
     <string name="cancel">Cancel</string>
     <string name="no">No</string>
     <string name="addNewPositionTitle">Add a new position</string>
     <string name="nameChoosen">Name</string>
-    <string name="addSubLocation">Add a new sublocation to :</string>
-    <string name="newSubLocationName">New sub location name</string>
+    <string name="addNewSubPositionTitle">Add a new sub position to</string>
+    <string name="alertMessage">Impossible to add : you are not in the area</string>
     <!-- Service -->
     <string name="foregroundTitle">eStats</string>
     <string name="foregroundContext">The app needs your local position when it is in background.</string>

@@ -21,7 +21,8 @@ import com.amarchaud.estats.adapter.decoration.SwipeTouchCallback
 import com.amarchaud.estats.databinding.MainFragmentBinding
 import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.removeMarker
-import com.amarchaud.estats.popup.CurrentLocationDialog
+import com.amarchaud.estats.dialog.AddCurrentLocationDialog
+import com.amarchaud.estats.dialog.AddSubLocationDialog
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import com.xwray.groupie.ExpandableGroup
@@ -328,8 +329,8 @@ class MainFragment : Fragment(), FragmentResultListener {
 
         // just display popup
         viewModel.popupAddCurrentPosition.observe(viewLifecycleOwner, { location ->
-            val customPopup = CurrentLocationDialog.newInstance(location.latitude, location.longitude)
-            requireActivity().supportFragmentManager.setFragmentResultListener(CurrentLocationDialog.KEY_RESULT, this, this) // get the result
+            val customPopup = AddCurrentLocationDialog.newInstance(location.latitude, location.longitude)
+            requireActivity().supportFragmentManager.setFragmentResultListener(AddCurrentLocationDialog.KEY_RESULT_MAIN, this, this) // get the result
             customPopup.show(requireActivity().supportFragmentManager, "add new position")
         })
     }
@@ -395,18 +396,23 @@ class MainFragment : Fragment(), FragmentResultListener {
     }
 
     override fun onFragmentResult(requestKey: String, result: Bundle) {
-        if (requestKey == CurrentLocationDialog.KEY_RESULT) {
+        if (requestKey == AddCurrentLocationDialog.KEY_RESULT_MAIN) {
 
-            val lat = result.getDouble(CurrentLocationDialog.KEY_LAT)
-            val lon = result.getDouble(CurrentLocationDialog.KEY_LON)
-            val nameChoosen = result.getString(CurrentLocationDialog.KEY_NAME)
-            val idMain = result.getInt(CurrentLocationDialog.KEY_ID_MAIN)
+            val lat = result.getDouble(AddCurrentLocationDialog.KEY_LAT)
+            val lon = result.getDouble(AddCurrentLocationDialog.KEY_LON)
+            val nameChoosen = result.getString(AddCurrentLocationDialog.KEY_NAME_RETURNED)
+            viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, null)
 
-            if (idMain >= 0)
-                viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, idMain)
-            else
-                viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, null)
-            closeFABMenu()
+        } else if (requestKey == AddSubLocationDialog.KEY_RESULT_SUB) {
+
+            val lat = result.getDouble(AddSubLocationDialog.KEY_RETURNED_LAT)
+            val lon = result.getDouble(AddSubLocationDialog.KEY_RETURNED_LON)
+            val nameChoosen = result.getString(AddSubLocationDialog.KEY_NAME_RETURNED)
+            val idMain = result.getInt(AddSubLocationDialog.KEY_PARENT_ID)
+
+            viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, idMain)
         }
+
+        closeFABMenu()
     }
 }

@@ -1,10 +1,9 @@
-package com.amarchaud.estats.popup
+package com.amarchaud.estats.dialog
 
 import android.app.Dialog
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
-import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
@@ -12,23 +11,24 @@ import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogCurrentLocationBinding
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 
-class CurrentLocationDialog : DialogFragment() {
+class AddCurrentLocationDialog : DialogFragment() {
 
     companion object {
-        const val KEY_RESULT = "KEY_RESULT"
+        // in  and out
         const val KEY_LAT = "KEY_LAT"
         const val KEY_LON = "KEY_LON"
-        const val KEY_NAME = "KEY_NAME"
-        const val KEY_ID_MAIN = "KEY_ID_MAIN"
 
-        fun newInstance(lat: Double, lon: Double, idMain: Int = -1): CurrentLocationDialog {
+        //out
+        const val KEY_RESULT_MAIN = "KEY_RESULT_MAIN"
+        const val KEY_NAME_RETURNED = "KEY_NAME_RETURNED"
 
-            val fragment = CurrentLocationDialog()
+        fun newInstance(lat: Double, lon: Double): AddCurrentLocationDialog {
+
+            val fragment = AddCurrentLocationDialog()
 
             val args = Bundle()
             args.putDouble(KEY_LAT, lat)
             args.putDouble(KEY_LON, lon)
-            args.putInt(KEY_ID_MAIN, idMain)
 
             fragment.arguments = args
             return fragment
@@ -38,13 +38,11 @@ class CurrentLocationDialog : DialogFragment() {
 
     private var _binding: DialogCurrentLocationBinding? = null
     private val binding get() = _binding!!
-    private var idMainStored = 0
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(KEY_LAT, binding.lat.text.toString())
         outState.putString(KEY_LON, binding.lon.text.toString())
-        outState.putString(KEY_NAME, binding.nameEditText.text.toString())
-        outState.putInt(KEY_ID_MAIN, idMainStored)
+        outState.putString(KEY_NAME_RETURNED, binding.nameEditText.text.toString())
         super.onSaveInstanceState(outState)
     }
 
@@ -63,7 +61,6 @@ class CurrentLocationDialog : DialogFragment() {
             // recupération des data
             val latitude = requireArguments().getDouble(KEY_LAT)
             val longitude = requireArguments().getDouble(KEY_LON)
-            val idMain = requireArguments().getInt(KEY_ID_MAIN)
 
             with(binding) {
 
@@ -72,12 +69,10 @@ class CurrentLocationDialog : DialogFragment() {
                 if (savedInstanceState != null) {
                     lat.text = savedInstanceState.getString(KEY_LAT)
                     lon.text = savedInstanceState.getString(KEY_LON)
-                    nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME))
-                    idMainStored = savedInstanceState.getInt(KEY_ID_MAIN)
+                    nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME_RETURNED))
                 } else {
                     lat.text = java.lang.String.valueOf(latitude)
                     lon.text = java.lang.String.valueOf(longitude)
-                    idMainStored = idMain
                 }
 
                 builder
@@ -88,12 +83,11 @@ class CurrentLocationDialog : DialogFragment() {
                         val result: Bundle = Bundle().apply {
                             putDouble(KEY_LAT, java.lang.Double.parseDouble(lat.text.toString()))
                             putDouble(KEY_LON, java.lang.Double.parseDouble(lon.text.toString()))
-                            putString(KEY_NAME, nameEditText.text.toString())
-                            putInt(KEY_ID_MAIN, idMain)
+                            putString(KEY_NAME_RETURNED, nameEditText.text.toString())
                         }
 
                         // send result to Listener(s)
-                        parentFragmentManager.setFragmentResult(KEY_RESULT, result)
+                        parentFragmentManager.setFragmentResult(KEY_RESULT_MAIN, result)
                         dialog?.dismiss()
                     }
                     .setNegativeButton(R.string.cancel) { dialog, _ ->

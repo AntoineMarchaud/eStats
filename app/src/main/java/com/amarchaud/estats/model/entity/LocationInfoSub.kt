@@ -12,7 +12,7 @@ data class LocationInfoSub(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "idSub") @Nullable val idSub: Int? = null,
     @ColumnInfo(name = "idMain") @Nullable val idMain: Int? = null, // the id from LocationInfo
     @ColumnInfo(name = "name") @Nullable val name: String? = null,
-    @ColumnInfo(name = "delta") val delta: Int = 10,
+    @ColumnInfo(name = "delta") val delta: Int = 7,
     @ColumnInfo(name = "lat") val lat: Double = 0.0,
     @ColumnInfo(name = "lon") val lon: Double = 0.0,
     @ColumnInfo(name = "duration_day") var duration_day: Long = 0,
