@@ -330,7 +330,6 @@ class MainFragment : Fragment(), FragmentResultListener {
         // just display popup
         viewModel.popupAddCurrentPosition.observe(viewLifecycleOwner, { location ->
             val customPopup = AddCurrentLocationDialog.newInstance(location.latitude, location.longitude)
-            requireActivity().supportFragmentManager.setFragmentResultListener(AddCurrentLocationDialog.KEY_RESULT_MAIN, this, this) // get the result
             customPopup.show(requireActivity().supportFragmentManager, "add new position")
         })
     }
@@ -339,11 +338,17 @@ class MainFragment : Fragment(), FragmentResultListener {
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
+
+        requireActivity().supportFragmentManager.setFragmentResultListener(AddCurrentLocationDialog.KEY_RESULT_MAIN, this, this)
+        requireActivity().supportFragmentManager.setFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB, this, this)
     }
 
     override fun onPause() {
         super.onPause()
         viewModel.onPause()
+
+        requireActivity().supportFragmentManager.clearFragmentResultListener(AddCurrentLocationDialog.KEY_RESULT_MAIN)
+        requireActivity().supportFragmentManager.clearFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB)
     }
 
     override fun onDestroy() {

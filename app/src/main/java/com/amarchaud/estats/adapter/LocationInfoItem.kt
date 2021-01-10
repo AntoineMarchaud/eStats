@@ -57,7 +57,6 @@ class LocationInfoItem(
                 if (Distance.measure(currentLat, currentLon, locationInfo.lat, locationInfo.lon) < locationInfo.delta) {
                     val fragmentManager = fragment.requireActivity().supportFragmentManager
                     val customPopup = AddSubLocationDialog.newInstance(locationInfo.name!!, locationInfo.lat, locationInfo.lon, locationInfo.delta, locationInfo.id)
-                    fragment.requireActivity().supportFragmentManager.setFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB, fragment, fragment) // get the result
                     customPopup.show(fragmentManager, "add new position")
                 } else {
                     Toast.makeText(fragment.requireContext(), "You must be in the area of the parent !", Toast.LENGTH_SHORT).show()
