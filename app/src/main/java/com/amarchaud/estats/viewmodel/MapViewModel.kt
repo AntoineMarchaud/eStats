@@ -9,21 +9,14 @@ import android.location.Location
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.util.Log
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.amarchaud.estats.BR
 import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.service.PositionService
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.*
 
 class MapViewModel @ViewModelInject constructor(
     val app: Application,

@@ -11,7 +11,7 @@ fun MapView.addMarker(lat: Double, lon: Double, name: String?) {
     oneMarker.title = name
     oneMarker.setTextIcon(name) // displayed on screen
     oneMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-    val added = this.overlays.add(oneMarker)
+    this.overlays.add(oneMarker)
 }
 
 fun MapView.removeMarker(lat: Double, lon: Double, name: String?) {

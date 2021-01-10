@@ -20,6 +20,7 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polygon
 
 @AndroidEntryPoint
 class MapFragment : Fragment() {
@@ -132,12 +133,14 @@ class MapFragment : Fragment() {
 
                     with(this.locationInfo) {
                         mapView.addMarker(lat, lon, name)
+
+                        DrawCirleAroundPosition(GeoPoint(lat,lon), this.delta.toDouble(), 0x00FF00)
                     }
 
                     // todo add subitem marker ?
                     with(this.subLocation) {
                         forEach {
-
+                            DrawCirleAroundPosition(GeoPoint(it.lat,it.lon), it.delta.toDouble(),  0xFF0000)
                         }
                     }
                 }
@@ -154,5 +157,16 @@ class MapFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         viewModel.onPause()
+    }
+
+    private fun DrawCirleAroundPosition(geoLocPos : GeoPoint, radiusInMeters : Double, color : Int) {
+        val circle: List<GeoPoint> = Polygon.pointsAsCircle(geoLocPos, radiusInMeters)
+        val p = Polygon(mapView)
+        p.points = circle
+        p.title = "A circle"
+        val fillPaint = p.fillPaint
+        fillPaint.color = color
+        mapView.overlayManager.add(p)
+        mapView.invalidate()
     }
 }

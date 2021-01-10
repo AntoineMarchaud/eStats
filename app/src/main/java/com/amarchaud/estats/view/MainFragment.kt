@@ -281,8 +281,9 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     // expandableLocationWithSub.getGroup(0) = header
                     (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
                         this.locationInfo = locationInfo
-                        notifyChanged()
+                        //notifyChanged() // no use for parent, only for childre
                     }
+                    expandableLocationWithSub.notifyItemChanged(0)
                 }
             }
         })
@@ -399,18 +400,4 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             }
         }
     }
-
-
-    // todo
-    /*
-    // draw circle around the marker
-    val circle: List<GeoPoint> =
-        Polygon.pointsAsCircle(oneMarker.position, it.delta.toDouble())
-    val p = Polygon(mapView)
-    p.points = circle
-    p.title = "A circle"
-    val fillPaint = p.fillPaint
-    fillPaint.color = 0xFF0000
-    mapView.overlayManager.add(p)
-    mapView.invalidate()*/
 }
