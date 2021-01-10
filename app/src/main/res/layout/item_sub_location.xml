@@ -40,7 +40,7 @@
             tools:text="@{String.valueOf(LocationInfoSub.lat)}" />
 
         <TextView
-            android:id="@+id/subLon"
+            android:id="@+id/lon"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/subLon"
+            app:layout_constraintStart_toEndOf="@id/lon"
             app:layout_constraintTop_toTopOf="parent"
             app:onLongMsToTime="@{LocationInfoSub.duration_day}"/>
 

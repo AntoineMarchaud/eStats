@@ -23,6 +23,7 @@ import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.removeMarker
 import com.amarchaud.estats.popup.CurrentLocationDialog
 import com.amarchaud.estats.viewmodel.MainViewModel
+import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -48,6 +49,7 @@ class MainFragment : Fragment(), FragmentResultListener {
     private val binding get() = _binding!!
 
     private val viewModel: MainViewModel by viewModels() // replace ViewModelProvider
+    private val geoPointViewModel: GeoPointViewModel by activityViewModels()
 
     // Marker of my position
     private var myPositionMarker: Marker? = null
@@ -168,6 +170,8 @@ class MainFragment : Fragment(), FragmentResultListener {
                 if (!mapView.overlays.contains(myPositionMarker))
                     mapView.overlays.add(marker)
             }
+
+            geoPointViewModel.geoLoc.value = location
         })
 
 

@@ -39,9 +39,9 @@ class LocationInfoItem(
         viewBinding.apply {
 
             name.text = locationInfo.name
-            subLat.text = java.lang.String.valueOf(locationInfo.lat)
-            subLon.text = java.lang.String.valueOf(locationInfo.lon)
-            subDuration.text = TimeTransformation.MillisecondToTimeStr(locationInfo.duration_day)
+            lat.text = java.lang.String.valueOf(locationInfo.lat)
+            lon.text = java.lang.String.valueOf(locationInfo.lon)
+            duration.text = TimeTransformation.MillisecondToTimeStr(locationInfo.duration_day)
 
             icAddSub.setOnClickListener {
 
