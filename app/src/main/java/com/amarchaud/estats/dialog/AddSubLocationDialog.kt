@@ -61,15 +61,6 @@ class AddSubLocationDialog : DialogFragment() {
     private var idMainStored: Int = -1
 
     override fun onSaveInstanceState(outState: Bundle) {
-        // in
-        outState.putDouble(KEY_PARENT_LAT, parentLatStored)
-        outState.putDouble(KEY_PARENT_LON, parentLonStored)
-        outState.putString(KEY_PARENT_NAME, parentNameStored)
-        outState.putInt(KEY_PARENT_DELTA, parentDeltaStored)
-
-        // in and out
-        outState.putInt(KEY_PARENT_ID, idMainStored)
-
         // out
         outState.putDouble(KEY_RETURNED_LAT, java.lang.Double.parseDouble(binding.lat.text.toString()))
         outState.putDouble(KEY_RETURNED_LON, java.lang.Double.parseDouble(binding.lon.text.toString()))
@@ -106,13 +97,6 @@ class AddSubLocationDialog : DialogFragment() {
                     // in
                     lat.text = savedInstanceState.getDouble(KEY_RETURNED_LAT).toString()
                     lon.text = savedInstanceState.getDouble(KEY_RETURNED_LON).toString()
-                    parentLatStored = savedInstanceState.getDouble(KEY_PARENT_LAT)
-                    parentLonStored = savedInstanceState.getDouble(KEY_PARENT_LON)
-                    parentNameStored = savedInstanceState.getString(KEY_PARENT_NAME)
-                    parentDeltaStored = savedInstanceState.getInt(KEY_PARENT_DELTA)
-
-                    // in and out
-                    idMainStored = savedInstanceState.getInt(KEY_PARENT_ID)
 
                     //out
                     nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME_RETURNED))
@@ -120,14 +104,17 @@ class AddSubLocationDialog : DialogFragment() {
                     with(requireArguments()) {
                         lat.text = getDouble(KEY_PARENT_LAT).toString()
                         lon.text = getDouble(KEY_PARENT_LON).toString()
-                        parentLatStored = getDouble(KEY_PARENT_LAT)
-                        parentLonStored = getDouble(KEY_PARENT_LON)
-                        parentNameStored = getString(KEY_PARENT_NAME)
-                        parentDeltaStored = getInt(KEY_PARENT_DELTA)
-
-                        // in and out
-                        idMainStored = getInt(KEY_PARENT_ID)
                     }
+                }
+
+                with(requireArguments()) {
+                    parentLatStored = getDouble(KEY_PARENT_LAT)
+                    parentLonStored = getDouble(KEY_PARENT_LON)
+                    parentNameStored = getString(KEY_PARENT_NAME)
+                    parentDeltaStored = getInt(KEY_PARENT_DELTA)
+
+                    // in and out
+                    idMainStored = getInt(KEY_PARENT_ID)
                 }
 
                 builder
