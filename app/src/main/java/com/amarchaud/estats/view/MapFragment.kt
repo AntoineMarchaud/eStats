@@ -14,7 +14,6 @@ import com.amarchaud.estats.databinding.MapFragmentBinding
 import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.viewmodel.MapViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.main_fragment.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -121,8 +120,8 @@ class MapFragment : Fragment() {
                 marker.position = geoPoint
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
-                if (!mapView.overlays.contains(myPositionMarker))
-                    mapView.overlays.add(marker)
+                if (!binding.mapView.overlays.contains(myPositionMarker))
+                    binding.mapView.overlays.add(marker)
             }
         })
 
@@ -134,7 +133,7 @@ class MapFragment : Fragment() {
                 with(locationWithSubs) {
 
                     with(this.locationInfo) {
-                        mapView.addMarker(lat, lon, name)
+                        binding.mapView.addMarker(lat, lon, name)
 
                         DrawCirleAroundPosition(GeoPoint(lat,lon), this.delta.toDouble(), 0x00FF00)
                     }
@@ -168,12 +167,14 @@ class MapFragment : Fragment() {
 
     private fun DrawCirleAroundPosition(geoLocPos : GeoPoint, radiusInMeters : Double, color : Int) {
         val circle: List<GeoPoint> = Polygon.pointsAsCircle(geoLocPos, radiusInMeters)
-        val p = Polygon(mapView)
-        p.points = circle
-        p.title = "A circle"
-        val fillPaint = p.fillPaint
-        fillPaint.color = color
-        mapView.overlayManager.add(p)
-        mapView.invalidate()
+        with(binding) {
+            val p = Polygon(mapView)
+            p.points = circle
+            p.title = "A circle"
+            val fillPaint = p.fillPaint
+            fillPaint.color = color
+            mapView.overlayManager.add(p)
+            mapView.invalidate()
+        }
     }
 }

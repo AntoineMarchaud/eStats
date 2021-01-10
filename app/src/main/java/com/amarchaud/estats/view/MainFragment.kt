@@ -29,7 +29,6 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.main_fragment.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -160,15 +159,15 @@ class MainFragment : Fragment(), FragmentResultListener {
 
             // update map
             val geoPoint = GeoPoint(location.latitude, location.longitude)
-            mapView.controller.animateTo(geoPoint)
+            binding.mapView.controller.animateTo(geoPoint)
 
             myPositionMarker?.let { marker ->
 
                 marker.position = geoPoint
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
-                if (!mapView.overlays.contains(myPositionMarker))
-                    mapView.overlays.add(marker)
+                if (!binding.mapView.overlays.contains(myPositionMarker))
+                    binding.mapView.overlays.add(marker)
             }
 
             geoPointViewModel.geoLoc.value = location
@@ -192,7 +191,7 @@ class MainFragment : Fragment(), FragmentResultListener {
                 with(locationWithSubs) {
 
                     with(this.locationInfo) {
-                        mapView.addMarker(lat, lon, name)
+                        binding.mapView.addMarker(lat, lon, name)
                     }
 
                     // todo add subitem marker ?
@@ -232,7 +231,7 @@ class MainFragment : Fragment(), FragmentResultListener {
                     with(locationWithSubs) {
 
                         with(this.locationInfo) {
-                            mapView.addMarker(lat, lon, name)
+                            binding.mapView.addMarker(lat, lon, name)
                         }
 
                         // todo add subitem marker ?
@@ -250,7 +249,7 @@ class MainFragment : Fragment(), FragmentResultListener {
                     with(locationWithSubs) {
 
                         with(this.locationInfo) {
-                            mapView.removeMarker(lat, lon, name)
+                            binding.mapView.removeMarker(lat, lon, name)
                         }
 
                         // todo remove subitem marker ?
@@ -354,18 +353,22 @@ class MainFragment : Fragment(), FragmentResultListener {
 
     private fun showFABMenu() {
         isFABOpen = true
-        mainFloatingActionButton.animate().rotation(45f)
-        addMyPositionActionButton.animate()
-            .translationY(-resources.getDimension(R.dimen.floatingTranslation1))
-        addCustomPositionActionButton.animate()
-            .translationY(-resources.getDimension(R.dimen.floatingTranslation2))
+        with(binding) {
+            mainFloatingActionButton.animate().rotation(45f)
+            addMyPositionActionButton.animate()
+                .translationY(-resources.getDimension(R.dimen.floatingTranslation1))
+            addCustomPositionActionButton.animate()
+                .translationY(-resources.getDimension(R.dimen.floatingTranslation2))
+        }
     }
 
     private fun closeFABMenu() {
         isFABOpen = false
-        mainFloatingActionButton.animate().rotation(-45f)
-        addMyPositionActionButton.animate().translationY(0.0f)
-        addCustomPositionActionButton.animate().translationY(0.0f)
+        with(binding) {
+            mainFloatingActionButton.animate().rotation(-45f)
+            addMyPositionActionButton.animate().translationY(0.0f)
+            addCustomPositionActionButton.animate().translationY(0.0f)
+        }
     }
 
 

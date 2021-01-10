@@ -2,7 +2,6 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
-    id 'kotlin-android-extensions'
 }
 
 android {
@@ -13,11 +12,6 @@ android {
         dataBinding true
         viewBinding true
     }
-
-    androidExtensions {
-        experimental = true
-    }
-
 
     defaultConfig {
         applicationId "com.amarchaud.estats"
