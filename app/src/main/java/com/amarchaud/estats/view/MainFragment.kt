@@ -73,6 +73,7 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
         binding.lifecycleOwner = this
 
         with(binding) {
+
             centerView.setOnClickListener {
                 viewModel.myGeoLoc.value?.apply {
                     val geoPoint = GeoPoint(latitude, longitude)
@@ -82,17 +83,6 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                 }
             }
 
-            mapView.addMapListener(object : MapListener {
-                override fun onScroll(event: ScrollEvent?): Boolean {
-                    mAutoCentered = false
-                    return true
-                }
-
-                override fun onZoom(event: ZoomEvent?): Boolean {
-                    return true
-                }
-
-            })
 
             with(recyclerviewItems) {
                 layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
@@ -103,16 +93,43 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
 
                 ItemTouchHelper(touchCallback).attachToRecyclerView(this)
             }
+
+            with(mapView) {
+
+                addMapListener(object : MapListener {
+                    override fun onScroll(event: ScrollEvent?): Boolean {
+                        mAutoCentered = false
+                        return true
+                    }
+
+                    override fun onZoom(event: ZoomEvent?): Boolean {
+                        return true
+                    }
+
+                })
+
+                // map default config
+                Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
+                setTileSource(TileSourceFactory.MAPNIK)
+                //mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
+                setMultiTouchControls(true)
+                val mapController = mapView.controller
+                mapController.setZoom(15.0)
+                myPositionMarker = Marker(mapView)
+            }
+
+            with(mainFloatingActionButton) {
+                setOnClickListener {
+                    if (!isFABOpen) {
+                        showFABMenu();
+                    } else {
+                        closeFABMenu();
+                    }
+                }
+            }
         }
 
-        // map default config
-        Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
-        mapView.setTileSource(TileSourceFactory.MAPNIK)
-        //mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
-        mapView.setMultiTouchControls(true)
-        val mapController = mapView.controller
-        mapController.setZoom(15.0)
-        myPositionMarker = Marker(mapView)
+        // ********************** Refreshing LiveData
 
         // update current geoloc
         viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
@@ -163,8 +180,6 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
                     }
                 }
             }
-
-            //groupAdapter.notifyDataSetChanged()
         })
 
 
@@ -293,14 +308,6 @@ class MainFragment : Fragment(), CurrentLocationPopup.CurrentLocationDialogListe
             val customPopup = CurrentLocationPopup(location.latitude, location.longitude, this)
             customPopup.show(fragmentManager, "add new position")
         })
-
-        mainFloatingActionButton.setOnClickListener {
-            if (!isFABOpen) {
-                showFABMenu();
-            } else {
-                closeFABMenu();
-            }
-        }
     }
 
 
