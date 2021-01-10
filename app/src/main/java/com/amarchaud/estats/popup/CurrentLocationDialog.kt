@@ -3,11 +3,11 @@ package com.amarchaud.estats.popup
 import android.app.Dialog
 import android.os.Bundle
 import android.text.SpannableStringBuilder
+import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import com.amarchaud.estats.R
-import kotlinx.android.synthetic.main.popup_current_location.view.*
+import com.amarchaud.estats.databinding.DialogCurrentLocationBinding
 
 class CurrentLocationDialog : DialogFragment() {
 
@@ -32,44 +32,47 @@ class CurrentLocationDialog : DialogFragment() {
         }
     }
 
-    private lateinit var storeName : String
+    private var _binding: DialogCurrentLocationBinding? = null
+    private val binding get() = _binding!!
+    private var idMainStored = 0
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putDouble(KEY_LAT, requireArguments().getDouble(KEY_LAT))
-        outState.putDouble(KEY_LON, requireArguments().getDouble(KEY_LON))
+        outState.putString(KEY_LAT, binding.subLat.text.toString())
+        outState.putString(KEY_LON, binding.subLon.text.toString())
+        outState.putString(KEY_NAME, binding.nameEditText.text.toString())
+        outState.putInt(KEY_ID_MAIN, idMainStored)
         super.onSaveInstanceState(outState)
     }
-
-
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         return activity?.let {
+
+            _binding = DialogCurrentLocationBinding.inflate(LayoutInflater.from(context))
 
             // recupération des data
             val lat = requireArguments().getDouble(KEY_LAT)
             val lon = requireArguments().getDouble(KEY_LON)
             val idMain = requireArguments().getInt(KEY_ID_MAIN)
 
-            val builder = AlertDialog.Builder(it)
-            val inflater = requireActivity().layoutInflater
+            with(binding) {
 
-            with(inflater.inflate(R.layout.popup_current_location, null)) {
-
+                val builder = AlertDialog.Builder(it)
 
                 if (savedInstanceState != null) {
                     subLat.text = savedInstanceState.getString(KEY_LAT)
                     subLon.text = savedInstanceState.getString(KEY_LON)
-                    //nameEditText.text =
-                      //  SpannableStringBuilder(savedInstanceState.getString(KEY_NAME))
+                    nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME))
+                    idMainStored = savedInstanceState.getInt(KEY_ID_MAIN)
                 } else {
                     subLat.text = java.lang.String.valueOf(lat)
                     subLon.text = java.lang.String.valueOf(lon)
+                    idMainStored = idMain
                 }
 
                 builder
                     .setTitle(it.getString(R.string.addNewPositionTitle))
-                    .setView(this)
+                    .setView(binding.root)
                     .setPositiveButton(R.string.yes) { dialog, id ->
 
                         val result: Bundle = Bundle().apply {
@@ -88,10 +91,12 @@ class CurrentLocationDialog : DialogFragment() {
                     }
 
                 builder.create()
-
             }
-
-
         } ?: throw IllegalStateException("Activity cannot be null")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
