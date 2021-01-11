@@ -13,10 +13,10 @@
         <NumberPicker
             android:id="@+id/numberPickerDelta"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
-        <org.osmdroid.views.MapView
-            android:id="@+id/mapView"
+        <FrameLayout
+            android:id="@+id/mapViewContainer"
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_gravity="center_horizontal" />

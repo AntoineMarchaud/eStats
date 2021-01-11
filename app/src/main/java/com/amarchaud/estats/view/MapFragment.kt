@@ -2,24 +2,25 @@ package com.amarchaud.estats.view
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.contains
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.MapFragmentBinding
-import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.extension.addMarker
+import com.amarchaud.estats.extension.createCircle
 import com.amarchaud.estats.extension.drawCircle
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MapViewModel
+import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.OverlayItem
 import org.osmdroid.views.overlay.Polygon
 import java.lang.System.gc
 
@@ -30,7 +31,7 @@ class MapFragment : Fragment() {
     companion object {
         const val TAG = "MapFragment"
 
-        fun newInstance(lat: Double, lon: Double) : MapFragment {
+        fun newInstance(lat: Double, lon: Double): MapFragment {
             val fragment = MapFragment()
 
             val args = Bundle()
@@ -43,8 +44,10 @@ class MapFragment : Fragment() {
     private var _binding: MapFragmentBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: MapViewModel by viewModels() // replace ViewModelProvider
+    private val viewModel: MapViewModel by viewModels()
+    private val numberPickerViewModel: NumberPickerViewModel by activityViewModels()
 
+    private var myPositionCircle: Polygon? = null
     private var myPositionMarker: Marker? = null
     private lateinit var sharedPref: SharedPreferences
 
@@ -83,9 +86,7 @@ class MapFragment : Fragment() {
                 if (savedInstanceState != null) {
                     initCenterX = savedInstanceState.getDouble("mapCenteredX")
                     initCenterY = savedInstanceState.getDouble("mapCenteredY")
-
                 } else {
-
                     initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
                     initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
                 }
@@ -100,6 +101,9 @@ class MapFragment : Fragment() {
                     if (!mapView.overlays.contains(myPositionMarker))
                         overlays.add(marker)
                 }
+
+                myPositionCircle =
+                    createCircle(GeoPoint(initCenterX, initCenterY), numberPickerViewModel.pickerValue.value?.toDouble() ?: 0.0, Color.BLACK)
             }
 
             with(centerView) {
@@ -117,12 +121,21 @@ class MapFragment : Fragment() {
             // update map
             myPositionMarker?.let { marker ->
                 marker.position = GeoPoint(location.latitude, location.longitude)
-                if(!binding.mapView.overlays.contains(marker))
+                if (!binding.mapView.overlays.contains(marker))
                     binding.mapView.overlays.add(marker)
             }
 
             binding.mapView.invalidate()
         })
+
+        numberPickerViewModel.pickerValue.observe(viewLifecycleOwner, {
+            // update map
+            myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(viewModel.myGeoLoc.value?.latitude ?: 0.0, viewModel.myGeoLoc.value?.longitude ?: 0.0), it.toDouble())
+            if (!binding.mapView.overlayManager.contains(myPositionCircle))
+                binding.mapView.overlayManager.add(myPositionCircle)
+            binding.mapView.invalidate()
+        })
+
 
         viewModel.allLocationsWithSub.observe(viewLifecycleOwner, { allLocationsWithSubs ->
 

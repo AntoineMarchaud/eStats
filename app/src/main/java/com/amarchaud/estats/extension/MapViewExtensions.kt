@@ -49,6 +49,7 @@ fun MapView.createCircle(center: GeoPoint, radiusInMeters: Double, color: Int): 
 
 fun MapView.drawCircle(center: GeoPoint, radiusInMeters: Double, color: Int) {
     val p = createCircle(center, radiusInMeters, color)
-    overlayManager.add(p)
+    if (!overlayManager.contains(p))
+        overlayManager.add(p)
     invalidate()
 }

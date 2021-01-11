@@ -334,7 +334,7 @@ class MainFragment : Fragment(), FragmentResultListener {
         })
 
         // just display popup
-        viewModel.popupAddCurrentPosition.observe(viewLifecycleOwner, { location ->
+        viewModel.dialogAddMainLocation.observe(viewLifecycleOwner, { location ->
             val customPopup = AddMainLocationDialog.newInstance(location.latitude, location.longitude)
             customPopup.show(requireActivity().supportFragmentManager, "add new position")
         })

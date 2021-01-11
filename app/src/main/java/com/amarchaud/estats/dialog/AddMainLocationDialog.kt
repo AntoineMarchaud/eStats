@@ -4,17 +4,18 @@ import android.app.Dialog
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.activityViewModels
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogCurrentLocationBinding
-import com.amarchaud.estats.extension.createCircle
-import com.amarchaud.estats.extension.initMapView
+import com.amarchaud.estats.view.MapFragment
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polygon
+import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
 
 
 class AddMainLocationDialog : DialogFragment() {
@@ -42,10 +43,8 @@ class AddMainLocationDialog : DialogFragment() {
         }
     }
 
-    private var myPositionMarker: Marker? = null
-    private var myCircle: Polygon? = null
-
     private val geoPointViewModel: GeoPointViewModel by activityViewModels()
+    private val numberPickerViewModel: NumberPickerViewModel by activityViewModels()
 
     private var _binding: DialogCurrentLocationBinding? = null
     private val binding get() = _binding!!
@@ -65,27 +64,15 @@ class AddMainLocationDialog : DialogFragment() {
             // update dialog
             binding.lat.text = currentLocation.latitude.toString()
             binding.lon.text = currentLocation.longitude.toString()
-
-            // update map
-            val g = GeoPoint(currentLocation.latitude, currentLocation.longitude)
-            binding.mapView.controller.animateTo(g)
-
-            myPositionMarker?.let { marker ->
-                marker.position = g
-                if (!binding.mapView.overlays.contains(marker))
-                    binding.mapView.overlays.add(marker)
-            }
-
-            myCircle?.points = Polygon.pointsAsCircle(GeoPoint(currentLocation.latitude, currentLocation.longitude), binding.numberPickerDelta.value.toDouble())
-            binding.mapView.invalidate()
         }
+
 
         return activity?.let {
 
             _binding = DialogCurrentLocationBinding.inflate(LayoutInflater.from(context))
-
-
             with(binding) {
+
+                // add MapViewFragment
 
                 numberPickerDelta.minValue = 7
                 numberPickerDelta.maxValue = 50
@@ -108,36 +95,10 @@ class AddMainLocationDialog : DialogFragment() {
                 numberPickerDelta.setFormatter { i ->
                     i.toString() + "m"
                 }
-
-
-                mapView.apply {
-
-                    val initCenterX: Double
-                    val initCenterY: Double
-                    if (savedInstanceState != null) {
-                        initCenterX = savedInstanceState.getDouble(KEY_LAT)
-                        initCenterY = savedInstanceState.getDouble(KEY_LON)
-                    } else {
-                        initCenterX = requireArguments().getDouble(KEY_LAT)
-                        initCenterY = requireArguments().getDouble(KEY_LON)
-                    }
-
-                    initMapView(GeoPoint(initCenterX, initCenterY))
-
-                    myPositionMarker = Marker(this)
-                    myPositionMarker?.let { marker ->
-                        val geoPoint = GeoPoint(initCenterX, initCenterY)
-                        marker.position = geoPoint
-                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-
-                        if (!mapView.overlays.contains(myPositionMarker))
-                            overlays.add(marker)
-                    }
-
-                    myCircle = createCircle(GeoPoint(initCenterX, initCenterY), numberPickerDelta.value.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor))
-                    overlayManager.add(myCircle)
-                    invalidate()
+                numberPickerDelta.setOnValueChangedListener { numberPicker, i, i2 ->
+                    numberPickerViewModel.pickerValue.value = i2
                 }
+
 
                 builder
                     .setTitle(it.getString(R.string.addNewPositionTitle))
@@ -152,7 +113,7 @@ class AddMainLocationDialog : DialogFragment() {
                         }
 
                         // send result to Listener(s)
-                        parentFragmentManager.setFragmentResult(KEY_RESULT_MAIN, result)
+                        requireActivity().supportFragmentManager.setFragmentResult(KEY_RESULT_MAIN, result)
                         dialog?.dismiss()
                     }
                     .setNegativeButton(R.string.cancel) { dialog, _ ->
@@ -162,6 +123,20 @@ class AddMainLocationDialog : DialogFragment() {
                 builder.create()
             }
         } ?: throw IllegalStateException("Activity cannot be null")
+    }
+
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        super.onCreateView(inflater, container, savedInstanceState)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val childFragment: Fragment = MapFragment()
+        val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
+        transaction.replace(R.id.mapViewContainer, childFragment).commit()
     }
 
 
