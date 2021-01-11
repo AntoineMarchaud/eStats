@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.MapFragmentBinding
 import com.amarchaud.estats.extension.addMarker
+import com.amarchaud.estats.extension.drawCircle
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MapViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -123,14 +124,13 @@ class MapFragment : Fragment() {
 
                     with(this.locationInfo) {
                         binding.mapView.addMarker(lat, lon, name)
-
-                        drawCirleAroundPosition(GeoPoint(lat, lon), this.delta.toDouble(), 0x00FF00)
+                        binding.mapView.drawCircle(GeoPoint(lat, lon), this.delta.toDouble(), 0x00FF00)
                     }
 
                     // todo add subitem marker ?
                     with(this.subLocation) {
                         forEach {
-                            drawCirleAroundPosition(GeoPoint(it.lat, it.lon), it.delta.toDouble(), 0xFF0000)
+                            binding.mapView.drawCircle(GeoPoint(it.lat, it.lon), it.delta.toDouble(), 0xFF0000)
                         }
                     }
                 }
@@ -152,18 +152,5 @@ class MapFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
-    }
-
-    private fun drawCirleAroundPosition(geoLocPos: GeoPoint, radiusInMeters: Double, color: Int) {
-        val circle: List<GeoPoint> = Polygon.pointsAsCircle(geoLocPos, radiusInMeters)
-        with(binding) {
-            val p = Polygon(mapView)
-            p.points = circle
-            p.title = "A circle"
-            val fillPaint = p.fillPaint
-            fillPaint.color = color
-            mapView.overlayManager.add(p)
-            mapView.invalidate()
-        }
     }
 }

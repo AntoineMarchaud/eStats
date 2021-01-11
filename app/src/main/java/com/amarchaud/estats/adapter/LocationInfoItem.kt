@@ -40,8 +40,8 @@ class LocationInfoItem(
         viewBinding.apply {
 
             name.text = locationInfo.name
-            lat.text = java.lang.String.valueOf(locationInfo.lat)
-            lon.text = java.lang.String.valueOf(locationInfo.lon)
+            lat.text = locationInfo.lat.toString()
+            lon.text = locationInfo.lon.toString()
             duration.text = TimeTransformation.MillisecondToTimeStr(locationInfo.duration_day)
 
             itemLayout.setOnLongClickListener {

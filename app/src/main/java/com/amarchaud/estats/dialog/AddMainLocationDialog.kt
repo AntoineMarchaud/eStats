@@ -7,17 +7,17 @@ import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogCurrentLocationBinding
+import com.amarchaud.estats.extension.createCircle
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polygon
 
-class AddCurrentLocationDialog : DialogFragment() {
+
+class AddMainLocationDialog : DialogFragment() {
 
     companion object {
         // in  and out
@@ -25,12 +25,13 @@ class AddCurrentLocationDialog : DialogFragment() {
         const val KEY_LON = "KEY_LON"
 
         //out
+        const val KEY_DELTA_RETURNED = "KEY_DELTA"
         const val KEY_RESULT_MAIN = "KEY_RESULT_MAIN"
         const val KEY_NAME_RETURNED = "KEY_NAME_RETURNED"
 
-        fun newInstance(lat: Double, lon: Double): AddCurrentLocationDialog {
+        fun newInstance(lat: Double, lon: Double): AddMainLocationDialog {
 
-            val fragment = AddCurrentLocationDialog()
+            val fragment = AddMainLocationDialog()
 
             val args = Bundle()
             args.putDouble(KEY_LAT, lat)
@@ -42,6 +43,8 @@ class AddCurrentLocationDialog : DialogFragment() {
     }
 
     private var myPositionMarker: Marker? = null
+    private var myCircle: Polygon? = null
+
     private val geoPointViewModel: GeoPointViewModel by activityViewModels()
 
     private var _binding: DialogCurrentLocationBinding? = null
@@ -51,6 +54,7 @@ class AddCurrentLocationDialog : DialogFragment() {
         outState.putString(KEY_LAT, binding.lat.text.toString())
         outState.putString(KEY_LON, binding.lon.text.toString())
         outState.putString(KEY_NAME_RETURNED, binding.nameEditText.text.toString())
+        outState.putInt(KEY_NAME_RETURNED, binding.numberPickerDelta.value)
         super.onSaveInstanceState(outState)
     }
 
@@ -65,21 +69,24 @@ class AddCurrentLocationDialog : DialogFragment() {
             binding.mapView.controller.animateTo(g)
 
             myPositionMarker?.let { marker ->
-                marker.position =  g
+                marker.position = g
                 if (!binding.mapView.overlays.contains(myPositionMarker))
                     binding.mapView.overlays.add(marker)
             }
+
+            myCircle?.points = Polygon.pointsAsCircle(GeoPoint(currentLocation.latitude, currentLocation.longitude), binding.numberPickerDelta.value.toDouble())
+            binding.mapView.invalidate()
         })
 
         return activity?.let {
 
             _binding = DialogCurrentLocationBinding.inflate(LayoutInflater.from(context))
 
-            // recupération des data
-            val latitude = requireArguments().getDouble(KEY_LAT)
-            val longitude = requireArguments().getDouble(KEY_LON)
 
             with(binding) {
+
+                numberPickerDelta.minValue = 7
+                numberPickerDelta.maxValue = 50
 
                 val builder = AlertDialog.Builder(it)
 
@@ -87,10 +94,19 @@ class AddCurrentLocationDialog : DialogFragment() {
                     lat.text = savedInstanceState.getString(KEY_LAT)
                     lon.text = savedInstanceState.getString(KEY_LON)
                     nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME_RETURNED))
+                    numberPickerDelta.value = savedInstanceState.getInt(KEY_DELTA_RETURNED)
                 } else {
-                    lat.text = java.lang.String.valueOf(latitude)
-                    lon.text = java.lang.String.valueOf(longitude)
+                    with(requireArguments()) {
+                        lat.text = getDouble(KEY_LAT).toString()
+                        lon.text = getDouble(KEY_LON).toString()
+                    }
+                    numberPickerDelta.value = 10
                 }
+
+                numberPickerDelta.setFormatter { i ->
+                    i.toString() + "m"
+                }
+
 
                 mapView.apply {
 
@@ -100,8 +116,8 @@ class AddCurrentLocationDialog : DialogFragment() {
                         initCenterX = savedInstanceState.getDouble(KEY_LAT)
                         initCenterY = savedInstanceState.getDouble(KEY_LON)
                     } else {
-                        initCenterX = latitude
-                        initCenterY = longitude
+                        initCenterX = requireArguments().getDouble(KEY_LAT)
+                        initCenterY = requireArguments().getDouble(KEY_LON)
                     }
 
                     initMapView(GeoPoint(initCenterX, initCenterY))
@@ -115,6 +131,10 @@ class AddCurrentLocationDialog : DialogFragment() {
                         if (!mapView.overlays.contains(myPositionMarker))
                             overlays.add(marker)
                     }
+
+                    myCircle = createCircle(GeoPoint(initCenterX, initCenterY), numberPickerDelta.value.toDouble(), 0x00FF00)
+                    overlayManager.add(myCircle)
+                    invalidate()
                 }
 
                 builder
@@ -126,6 +146,7 @@ class AddCurrentLocationDialog : DialogFragment() {
                             putDouble(KEY_LAT, java.lang.Double.parseDouble(lat.text.toString()))
                             putDouble(KEY_LON, java.lang.Double.parseDouble(lon.text.toString()))
                             putString(KEY_NAME_RETURNED, nameEditText.text.toString())
+                            putInt(KEY_DELTA_RETURNED, numberPickerDelta.value)
                         }
 
                         // send result to Listener(s)

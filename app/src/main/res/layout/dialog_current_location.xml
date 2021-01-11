@@ -5,17 +5,31 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <org.osmdroid.views.MapView
-        android:layout_gravity="center_horizontal"
-        android:id="@+id/mapView"
-        android:layout_width="200dp"
-        android:layout_height="200dp"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <NumberPicker
+            android:id="@+id/numberPickerDelta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+
+        <org.osmdroid.views.MapView
+            android:id="@+id/mapView"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="start"
         android:layout_gravity="center"
+        android:gravity="start"
         android:orientation="horizontal">
 
         <TextView
@@ -24,7 +38,7 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            android:text="@string/latitudeLabel"/>
+            android:text="@string/latitudeLabel" />
 
         <TextView
             android:id="@+id/lat"
@@ -38,8 +52,8 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="start"
         android:layout_gravity="center"
+        android:gravity="start"
         android:orientation="horizontal">
 
         <TextView
@@ -48,7 +62,7 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            android:text="@string/longitudeLabel"/>
+            android:text="@string/longitudeLabel" />
 
         <TextView
             android:id="@+id/lon"
@@ -56,15 +70,15 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true" />
 
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
         android:layout_gravity="center"
+        android:gravity="center"
         android:orientation="horizontal">
 
         <TextView
@@ -73,7 +87,7 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            android:text="@string/nameChoosen"/>
+            android:text="@string/nameChoosen" />
 
         <EditText
             android:id="@+id/nameEditText"
@@ -81,7 +95,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true" />
 
     </LinearLayout>
 </LinearLayout>

@@ -8,14 +8,11 @@ import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogAddSubLocationBinding
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.utils.Distance
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
 
@@ -139,8 +136,8 @@ class AddSubLocationDialog : DialogFragment() {
                     val initCenterY: Double
 
                     if (savedInstanceState != null) {
-                        initCenterX = savedInstanceState.getDouble(AddCurrentLocationDialog.KEY_LAT)
-                        initCenterY = savedInstanceState.getDouble(AddCurrentLocationDialog.KEY_LON)
+                        initCenterX = savedInstanceState.getDouble(AddMainLocationDialog.KEY_LAT)
+                        initCenterY = savedInstanceState.getDouble(AddMainLocationDialog.KEY_LON)
                     } else {
                         initCenterX = requireArguments().getDouble(KEY_PARENT_LAT)
                         initCenterY = requireArguments().getDouble(KEY_PARENT_LON)

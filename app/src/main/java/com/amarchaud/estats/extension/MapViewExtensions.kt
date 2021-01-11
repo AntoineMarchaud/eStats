@@ -1,13 +1,20 @@
 package com.amarchaud.estats.extension
 
 import com.amarchaud.estats.BuildConfig
-import com.amarchaud.estats.dialog.AddCurrentLocationDialog
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polygon
 
+fun MapView.initMapView(center: GeoPoint) {
+    Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
+    setTileSource(TileSourceFactory.MAPNIK)
+    setMultiTouchControls(false)
+    controller.setZoom(15.0)
+    setExpectedCenter(center)
+}
 
 fun MapView.addMarker(lat: Double, lon: Double, name: String?) {
     val oneMarker = Marker(this)
@@ -28,10 +35,20 @@ fun MapView.removeMarker(lat: Double, lon: Double, name: String?) {
 }
 
 
-fun MapView.initMapView(center : GeoPoint) {
-    Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
-    setTileSource(TileSourceFactory.MAPNIK)
-    setMultiTouchControls(false)
-    controller.setZoom(15.0)
-    setExpectedCenter(center)
+fun MapView.createCircle(center: GeoPoint, radiusInMeters: Double, color: Int): Polygon {
+    val circle: List<GeoPoint> = Polygon.pointsAsCircle(center, radiusInMeters)
+    val p = Polygon(this).apply {
+        points = circle
+        title = "A circle"
+        fillPaint.apply {
+            this.color = color
+        }
+    }
+    return p
+}
+
+fun MapView.drawCircle(center: GeoPoint, radiusInMeters: Double, color: Int) {
+    val p = createCircle(center, radiusInMeters, color)
+    overlayManager.add(p)
+    invalidate()
 }

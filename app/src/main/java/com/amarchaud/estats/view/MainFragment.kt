@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
-import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
 import com.amarchaud.estats.adapter.LocationInfoItem
 import com.amarchaud.estats.adapter.LocationInfoSubItem
@@ -21,7 +20,7 @@ import com.amarchaud.estats.adapter.decoration.SwipeTouchCallback
 import com.amarchaud.estats.databinding.MainFragmentBinding
 import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.removeMarker
-import com.amarchaud.estats.dialog.AddCurrentLocationDialog
+import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MainViewModel
@@ -31,8 +30,6 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
 
@@ -150,9 +147,9 @@ class MainFragment : Fragment(), FragmentResultListener {
         viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
 
             // update value
-            binding.currentLatitudeValue.text = java.lang.String.valueOf(location.latitude)
-            binding.currentLongitudeValue.text = java.lang.String.valueOf(location.longitude)
-            binding.currentAltitudeValue.text = java.lang.String.valueOf(location.altitude)
+            binding.currentLatitudeValue.text = location.latitude.toString()
+            binding.currentLongitudeValue.text = location.longitude.toString()
+            binding.currentAltitudeValue.text = location.altitude.toString()
 
             // update map
             val geoPoint = GeoPoint(location.latitude, location.longitude)
@@ -336,7 +333,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
         // just display popup
         viewModel.popupAddCurrentPosition.observe(viewLifecycleOwner, { location ->
-            val customPopup = AddCurrentLocationDialog.newInstance(location.latitude, location.longitude)
+            val customPopup = AddMainLocationDialog.newInstance(location.latitude, location.longitude)
             customPopup.show(requireActivity().supportFragmentManager, "add new position")
         })
     }
@@ -346,7 +343,7 @@ class MainFragment : Fragment(), FragmentResultListener {
         super.onResume()
         viewModel.onResume()
 
-        requireActivity().supportFragmentManager.setFragmentResultListener(AddCurrentLocationDialog.KEY_RESULT_MAIN, this, this)
+        requireActivity().supportFragmentManager.setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN, this, this)
         requireActivity().supportFragmentManager.setFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB, this, this)
     }
 
@@ -354,7 +351,7 @@ class MainFragment : Fragment(), FragmentResultListener {
         super.onPause()
         viewModel.onPause()
 
-        requireActivity().supportFragmentManager.clearFragmentResultListener(AddCurrentLocationDialog.KEY_RESULT_MAIN)
+        requireActivity().supportFragmentManager.clearFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN)
         requireActivity().supportFragmentManager.clearFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB)
     }
 
@@ -409,12 +406,13 @@ class MainFragment : Fragment(), FragmentResultListener {
     }
 
     override fun onFragmentResult(requestKey: String, result: Bundle) {
-        if (requestKey == AddCurrentLocationDialog.KEY_RESULT_MAIN) {
+        if (requestKey == AddMainLocationDialog.KEY_RESULT_MAIN) {
 
-            val lat = result.getDouble(AddCurrentLocationDialog.KEY_LAT)
-            val lon = result.getDouble(AddCurrentLocationDialog.KEY_LON)
-            val nameChoosen = result.getString(AddCurrentLocationDialog.KEY_NAME_RETURNED)
-            viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, null)
+            val lat = result.getDouble(AddMainLocationDialog.KEY_LAT)
+            val lon = result.getDouble(AddMainLocationDialog.KEY_LON)
+            val nameChoosen = result.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
+            val delta = result.getInt(AddMainLocationDialog.KEY_DELTA_RETURNED)
+            viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, delta, null)
 
         } else if (requestKey == AddSubLocationDialog.KEY_RESULT_SUB) {
 
@@ -423,7 +421,7 @@ class MainFragment : Fragment(), FragmentResultListener {
             val nameChoosen = result.getString(AddSubLocationDialog.KEY_NAME_RETURNED)
             val idMain = result.getInt(AddSubLocationDialog.KEY_PARENT_ID)
 
-            viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, idMain)
+            viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, 7, idMain)
         }
 
         closeFABMenu()
