@@ -21,7 +21,7 @@
 
         <TextView
             android:id="@+id/subName"
-            android:layout_width="50dp"
+            android:layout_width="75dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -31,7 +31,7 @@
 
         <TextView
             android:id="@+id/subLat"
-            android:layout_width="50dp"
+            android:layout_width="75dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -41,7 +41,7 @@
 
         <TextView
             android:id="@+id/lon"
-            android:layout_width="50dp"
+            android:layout_width="75dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -52,7 +52,7 @@
 
         <TextView
             android:id="@+id/subDuration"
-            android:layout_width="50dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.ItemLocationBinding
 import com.amarchaud.estats.model.entity.LocationInfo
-import com.amarchaud.estats.dialog.AddCurrentLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
 import com.amarchaud.estats.utils.Distance
 import com.amarchaud.estats.utils.TimeTransformation
@@ -22,7 +21,8 @@ import com.xwray.groupie.viewbinding.BindableItem
  */
 class LocationInfoItem(
     private var fragment: MainFragment,
-    var locationInfo: LocationInfo
+    var locationInfo: LocationInfo,
+    var displayExpanded : Boolean
 ) : // main location info
     BindableItem<ItemLocationBinding>(), ExpandableItem {
 
@@ -44,8 +44,7 @@ class LocationInfoItem(
             lon.text = java.lang.String.valueOf(locationInfo.lon)
             duration.text = TimeTransformation.MillisecondToTimeStr(locationInfo.duration_day)
 
-            icAddSub.setOnClickListener {
-
+            itemLayout.setOnLongClickListener {
                 val currentLat: Double = java.lang.Double.longBitsToDouble(
                     sharedPref.getLong(fragment.requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0))
                 )
@@ -61,9 +60,11 @@ class LocationInfoItem(
                 } else {
                     Toast.makeText(fragment.requireContext(), "You must be in the area of the parent !", Toast.LENGTH_SHORT).show()
                 }
+
+                true
             }
 
-            icExpand.visibility = View.VISIBLE
+            icExpand.visibility = if(displayExpanded) View.VISIBLE else View.INVISIBLE
             icExpand.setImageResource(if (expandableGroup.isExpanded) R.drawable.ic_collapse else R.drawable.ic_expand)
             icExpand.setOnClickListener {
                 expandableGroup.onToggleExpanded()

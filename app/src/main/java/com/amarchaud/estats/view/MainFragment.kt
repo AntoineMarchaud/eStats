@@ -101,7 +101,7 @@ class MainFragment : Fragment(), FragmentResultListener {
                 // avoid blink when item is modified
                 (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false;
 
-                ItemTouchHelper(touchCallback).attachToRecyclerView(this)
+                ItemTouchHelper(swipeCallback).attachToRecyclerView(this)
             }
 
             with(mapView) {
@@ -183,7 +183,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
             allLocationsWithSubs.forEach { locationWithSubs ->
 
-                val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo)
+                val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo, locationWithSubs.subLocation.size > 0)
                 val expandableLocationWithSub = ExpandableGroup(header)
                 locationWithSubs.subLocation.forEach {
                     expandableLocationWithSub.add(LocationInfoSubItem(it))
@@ -223,7 +223,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
                 MainViewModel.Companion.TypeItem.ITEM_INSERTED -> {
 
-                    val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo)
+                    val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo, locationWithSubs.subLocation.size > 0)
                     val expandableLocationWithSub = ExpandableGroup(header)
                     locationWithSubs.subLocation.forEach {
                         expandableLocationWithSub.add(LocationInfoSubItem(it))
@@ -263,6 +263,7 @@ class MainFragment : Fragment(), FragmentResultListener {
                         }
                     }
                 }
+
             }
         })
 
@@ -307,6 +308,11 @@ class MainFragment : Fragment(), FragmentResultListener {
                     val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
                     expandableLocationWithSub.add(LocationInfoSubItem(locationInfoSub))
 
+                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
+                        this.displayExpanded = true
+                    }
+                    expandableLocationWithSub.notifyItemChanged(0)
+
                     // todo add subitem marker ?
                 }
                 MainViewModel.Companion.TypeSubItem.ITEM_MODIFIED -> {
@@ -323,6 +329,12 @@ class MainFragment : Fragment(), FragmentResultListener {
                     val groupToRemove = expandableLocationWithSub.getGroup(1 + indexSub) as LocationInfoSubItem
                     // expandableLocationWithSub.getGroup(0) = header
                     expandableLocationWithSub.remove(groupToRemove)
+
+                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
+                        this.displayExpanded = expandableLocationWithSub.childCount > 0
+                        expandableLocationWithSub.isExpanded = expandableLocationWithSub.childCount > 0
+                    }
+                    expandableLocationWithSub.notifyItemChanged(0)
 
                     // todo remove subitem marker ?
                 }
@@ -380,7 +392,8 @@ class MainFragment : Fragment(), FragmentResultListener {
     }
 
 
-    private val touchCallback: TouchCallback by lazy {
+
+    private val swipeCallback: TouchCallback by lazy {
         object : SwipeTouchCallback() {
             override fun onMove(
                 recyclerView: RecyclerView,
