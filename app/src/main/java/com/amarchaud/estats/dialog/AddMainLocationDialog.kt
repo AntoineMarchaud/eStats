@@ -53,7 +53,7 @@ class AddMainLocationDialog : DialogFragment() {
         outState.putString(KEY_LAT, binding.lat.text.toString())
         outState.putString(KEY_LON, binding.lon.text.toString())
         outState.putString(KEY_NAME_RETURNED, binding.nameEditText.text.toString())
-        outState.putInt(KEY_NAME_RETURNED, binding.numberPickerDelta.value)
+        outState.putInt(KEY_DELTA_RETURNED, binding.numberPickerDelta.value)
         super.onSaveInstanceState(outState)
     }
 
@@ -82,7 +82,9 @@ class AddMainLocationDialog : DialogFragment() {
                 if (savedInstanceState != null) {
                     lat.text = savedInstanceState.getString(KEY_LAT)
                     lon.text = savedInstanceState.getString(KEY_LON)
-                    nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME_RETURNED))
+                    savedInstanceState.getString(KEY_NAME_RETURNED)?.let{
+                        nameEditText.text = SpannableStringBuilder(it)
+                    }
                     numberPickerDelta.value = savedInstanceState.getInt(KEY_DELTA_RETURNED)
                 } else {
                     with(requireArguments()) {
