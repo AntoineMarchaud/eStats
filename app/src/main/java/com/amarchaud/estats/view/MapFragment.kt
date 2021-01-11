@@ -6,20 +6,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.contains
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.MapFragmentBinding
 import com.amarchaud.estats.extension.addMarker
+import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MapViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.OverlayItem
 import org.osmdroid.views.overlay.Polygon
+import java.lang.System.gc
+
 
 @AndroidEntryPoint
 class MapFragment : Fragment() {
@@ -65,15 +66,6 @@ class MapFragment : Fragment() {
 
             with(mapView) {
 
-                // map default config
-                Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
-                setTileSource(TileSourceFactory.MAPNIK)
-                mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
-                setMultiTouchControls(true)
-                val mapController = controller
-                mapController.setZoom(15.0)
-                myPositionMarker = Marker(this)
-
                 val initCenterX: Double
                 val initCenterY: Double
 
@@ -86,9 +78,9 @@ class MapFragment : Fragment() {
                     initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
                     initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
                 }
+                initMapView(GeoPoint(initCenterX, initCenterY))
 
-                setExpectedCenter(GeoPoint(initCenterX, initCenterY))
-
+                myPositionMarker = Marker(this)
                 myPositionMarker?.let { marker ->
                     val geoPoint = GeoPoint(initCenterX, initCenterY)
                     marker.position = geoPoint
@@ -111,17 +103,14 @@ class MapFragment : Fragment() {
 
         // update current geoloc
         viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
-
             // update map
-            val geoPoint = GeoPoint(location.latitude, location.longitude)
-
             myPositionMarker?.let { marker ->
-
+                val geoPoint = GeoPoint(location.latitude, location.longitude)
                 marker.position = geoPoint
-                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
-                if (!binding.mapView.overlays.contains(myPositionMarker))
+                if(!binding.mapView.overlays.contains(marker))
                     binding.mapView.overlays.add(marker)
+                binding.mapView.postInvalidate();
             }
         })
 
@@ -135,13 +124,13 @@ class MapFragment : Fragment() {
                     with(this.locationInfo) {
                         binding.mapView.addMarker(lat, lon, name)
 
-                        DrawCirleAroundPosition(GeoPoint(lat,lon), this.delta.toDouble(), 0x00FF00)
+                        drawCirleAroundPosition(GeoPoint(lat, lon), this.delta.toDouble(), 0x00FF00)
                     }
 
                     // todo add subitem marker ?
                     with(this.subLocation) {
                         forEach {
-                            DrawCirleAroundPosition(GeoPoint(it.lat,it.lon), it.delta.toDouble(),  0xFF0000)
+                            drawCirleAroundPosition(GeoPoint(it.lat, it.lon), it.delta.toDouble(), 0xFF0000)
                         }
                     }
                 }
@@ -165,7 +154,7 @@ class MapFragment : Fragment() {
         _binding = null
     }
 
-    private fun DrawCirleAroundPosition(geoLocPos : GeoPoint, radiusInMeters : Double, color : Int) {
+    private fun drawCirleAroundPosition(geoLocPos: GeoPoint, radiusInMeters: Double, color: Int) {
         val circle: List<GeoPoint> = Polygon.pointsAsCircle(geoLocPos, radiusInMeters)
         with(binding) {
             val p = Polygon(mapView)

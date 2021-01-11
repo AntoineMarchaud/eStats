@@ -1,5 +1,9 @@
 package com.amarchaud.estats.extension
 
+import com.amarchaud.estats.BuildConfig
+import com.amarchaud.estats.dialog.AddCurrentLocationDialog
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
@@ -21,4 +25,13 @@ fun MapView.removeMarker(lat: Double, lon: Double, name: String?) {
         this.overlays.remove(it)
         this.requestLayout()
     }
+}
+
+
+fun MapView.initMapView(center : GeoPoint) {
+    Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
+    setTileSource(TileSourceFactory.MAPNIK)
+    setMultiTouchControls(false)
+    controller.setZoom(15.0)
+    setExpectedCenter(center)
 }

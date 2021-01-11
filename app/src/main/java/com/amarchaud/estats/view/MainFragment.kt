@@ -23,6 +23,7 @@ import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.removeMarker
 import com.amarchaud.estats.dialog.AddCurrentLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
+import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import com.xwray.groupie.ExpandableGroup
@@ -106,13 +107,6 @@ class MainFragment : Fragment(), FragmentResultListener {
 
             with(mapView) {
 
-                // map default config
-                Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
-                setTileSource(TileSourceFactory.MAPNIK)
-                setMultiTouchControls(false)
-                controller.setZoom(15.0)
-                myPositionMarker = Marker(this)
-
                 val initCenterX: Double
                 val initCenterY: Double
 
@@ -126,8 +120,9 @@ class MainFragment : Fragment(), FragmentResultListener {
                     initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
                 }
 
-                setExpectedCenter(GeoPoint(initCenterX, initCenterY))
+                initMapView(GeoPoint(initCenterX, initCenterY))
 
+                myPositionMarker = Marker(this)
                 myPositionMarker?.let { marker ->
                     val geoPoint = GeoPoint(initCenterX, initCenterY)
                     marker.position = geoPoint
@@ -159,20 +154,18 @@ class MainFragment : Fragment(), FragmentResultListener {
             binding.currentLongitudeValue.text = java.lang.String.valueOf(location.longitude)
             binding.currentAltitudeValue.text = java.lang.String.valueOf(location.altitude)
 
-
             // update map
             val geoPoint = GeoPoint(location.latitude, location.longitude)
             binding.mapView.controller.animateTo(geoPoint)
 
+            // update marker
             myPositionMarker?.let { marker ->
-
                 marker.position = geoPoint
-                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-
                 if (!binding.mapView.overlays.contains(myPositionMarker))
                     binding.mapView.overlays.add(marker)
             }
 
+            // send geoLoc to listeners
             geoPointViewModel.geoLoc.value = location
         })
 

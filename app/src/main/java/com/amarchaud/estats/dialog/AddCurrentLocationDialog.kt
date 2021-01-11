@@ -7,9 +7,15 @@ import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import com.amarchaud.estats.BuildConfig
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogCurrentLocationBinding
+import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.overlay.Marker
 
 class AddCurrentLocationDialog : DialogFragment() {
 
@@ -34,6 +40,8 @@ class AddCurrentLocationDialog : DialogFragment() {
             return fragment
         }
     }
+
+    private var myPositionMarker: Marker? = null
     private val geoPointViewModel: GeoPointViewModel by activityViewModels()
 
     private var _binding: DialogCurrentLocationBinding? = null
@@ -49,9 +57,18 @@ class AddCurrentLocationDialog : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         super.onCreateDialog(savedInstanceState)
 
-        geoPointViewModel.geoLoc.observe(this, {
-            binding.lat.text = it.latitude.toString()
-            binding.lon.text = it.longitude.toString()
+        geoPointViewModel.geoLoc.observe(this, { currentLocation ->
+            binding.lat.text = currentLocation.latitude.toString()
+            binding.lon.text = currentLocation.longitude.toString()
+
+            val g = GeoPoint(currentLocation.latitude, currentLocation.longitude)
+            binding.mapView.controller.animateTo(g)
+
+            myPositionMarker?.let { marker ->
+                marker.position =  g
+                if (!binding.mapView.overlays.contains(myPositionMarker))
+                    binding.mapView.overlays.add(marker)
+            }
         })
 
         return activity?.let {
@@ -73,6 +90,31 @@ class AddCurrentLocationDialog : DialogFragment() {
                 } else {
                     lat.text = java.lang.String.valueOf(latitude)
                     lon.text = java.lang.String.valueOf(longitude)
+                }
+
+                mapView.apply {
+
+                    val initCenterX: Double
+                    val initCenterY: Double
+                    if (savedInstanceState != null) {
+                        initCenterX = savedInstanceState.getDouble(KEY_LAT)
+                        initCenterY = savedInstanceState.getDouble(KEY_LON)
+                    } else {
+                        initCenterX = latitude
+                        initCenterY = longitude
+                    }
+
+                    initMapView(GeoPoint(initCenterX, initCenterY))
+
+                    myPositionMarker = Marker(this)
+                    myPositionMarker?.let { marker ->
+                        val geoPoint = GeoPoint(initCenterX, initCenterY)
+                        marker.position = geoPoint
+                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+
+                        if (!mapView.overlays.contains(myPositionMarker))
+                            overlays.add(marker)
+                    }
                 }
 
                 builder
