@@ -16,6 +16,9 @@
     <string name="currentPositionLabel">Current position</string>
     <string name="latitudeLabel">Latitude</string>
     <string name="longitudeLabel">Longitude</string>
+    <string name="altitudeLabel">Altitude</string>
+    <string name="matchingLocationLabel">Current Location</string>
+    <string name="matchingSubLocationLabel">Sub Location </string>
     <!-- Texts -->
     <string name="permission_explain">This app is using gps permission to work. Please authorize</string>
     <string name="askPermission">Ask location permission</string>

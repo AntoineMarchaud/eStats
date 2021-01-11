@@ -155,8 +155,10 @@ class MainFragment : Fragment(), FragmentResultListener {
         viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
 
             // update value
-            binding.currentLatitude.text = java.lang.String.valueOf(location.latitude)
-            binding.currentLongitude.text = java.lang.String.valueOf(location.longitude)
+            binding.currentLatitudeValue.text = java.lang.String.valueOf(location.latitude)
+            binding.currentLongitudeValue.text = java.lang.String.valueOf(location.longitude)
+            binding.currentAltitudeValue.text = java.lang.String.valueOf(location.altitude)
+
 
             // update map
             val geoPoint = GeoPoint(location.latitude, location.longitude)
