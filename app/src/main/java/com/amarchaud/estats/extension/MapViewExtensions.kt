@@ -39,8 +39,8 @@ fun MapView.createCircle(center: GeoPoint, radiusInMeters: Double, color: Int): 
     val circle: List<GeoPoint> = Polygon.pointsAsCircle(center, radiusInMeters)
     val p = Polygon(this).apply {
         points = circle
-        title = "A circle"
-        fillPaint.apply {
+        //title = "A circle" // display when click on the circle
+        outlinePaint.apply {
             this.color = color
         }
     }

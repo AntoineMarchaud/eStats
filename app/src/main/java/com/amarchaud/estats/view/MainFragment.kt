@@ -22,6 +22,7 @@ import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.removeMarker
 import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
+import com.amarchaud.estats.extension.drawCircle
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
@@ -185,6 +186,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
                     with(this.locationInfo) {
                         binding.mapView.addMarker(lat, lon, name)
+                        binding.mapView.drawCircle(GeoPoint(lat,lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor))
                     }
 
                     // todo add subitem marker ?

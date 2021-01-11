@@ -124,13 +124,13 @@ class MapFragment : Fragment() {
 
                     with(this.locationInfo) {
                         binding.mapView.addMarker(lat, lon, name)
-                        binding.mapView.drawCircle(GeoPoint(lat, lon), this.delta.toDouble(), 0x00FF00)
+                        binding.mapView.drawCircle(GeoPoint(lat, lon), this.delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor))
                     }
 
                     // todo add subitem marker ?
                     with(this.subLocation) {
                         forEach {
-                            binding.mapView.drawCircle(GeoPoint(it.lat, it.lon), it.delta.toDouble(), 0xFF0000)
+                            binding.mapView.drawCircle(GeoPoint(it.lat, it.lon), it.delta.toDouble(), requireContext().getColor(R.color.subLocationCircleColor))
                         }
                     }
                 }

@@ -132,7 +132,7 @@ class AddMainLocationDialog : DialogFragment() {
                             overlays.add(marker)
                     }
 
-                    myCircle = createCircle(GeoPoint(initCenterX, initCenterY), numberPickerDelta.value.toDouble(), 0x00FF00)
+                    myCircle = createCircle(GeoPoint(initCenterX, initCenterY), numberPickerDelta.value.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor))
                     overlayManager.add(myCircle)
                     invalidate()
                 }
