@@ -32,11 +32,6 @@ class MapViewModel @ViewModelInject constructor(
     private var bound: Boolean = false
 
     init {
-        // start service if needed
-        Intent(app, PositionService::class.java).also { intent ->
-            app.startService(intent)
-        }
-
         /**
          * Add all at startup or onSavedInstance/onRestoreInstance
          */

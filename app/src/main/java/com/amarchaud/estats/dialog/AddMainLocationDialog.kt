@@ -61,7 +61,7 @@ class AddMainLocationDialog : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         super.onCreateDialog(savedInstanceState)
 
-        geoPointViewModel.geoLoc.observe(this, { currentLocation ->
+        geoPointViewModel.geoLoc.observe(this) { currentLocation ->
             binding.lat.text = currentLocation.latitude.toString()
             binding.lon.text = currentLocation.longitude.toString()
 
@@ -76,7 +76,7 @@ class AddMainLocationDialog : DialogFragment() {
 
             myCircle?.points = Polygon.pointsAsCircle(GeoPoint(currentLocation.latitude, currentLocation.longitude), binding.numberPickerDelta.value.toDouble())
             binding.mapView.invalidate()
-        })
+        }
 
         return activity?.let {
 
