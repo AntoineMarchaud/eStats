@@ -62,15 +62,17 @@ class AddMainLocationDialog : DialogFragment() {
         super.onCreateDialog(savedInstanceState)
 
         geoPointViewModel.geoLoc.observe(this) { currentLocation ->
+            // update dialog
             binding.lat.text = currentLocation.latitude.toString()
             binding.lon.text = currentLocation.longitude.toString()
 
+            // update map
             val g = GeoPoint(currentLocation.latitude, currentLocation.longitude)
             binding.mapView.controller.animateTo(g)
 
             myPositionMarker?.let { marker ->
                 marker.position = g
-                if (!binding.mapView.overlays.contains(myPositionMarker))
+                if (!binding.mapView.overlays.contains(marker))
                     binding.mapView.overlays.add(marker)
             }
 

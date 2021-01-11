@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.MapFragmentBinding
+import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.drawCircle
 import com.amarchaud.estats.extension.initMapView
@@ -28,6 +29,15 @@ class MapFragment : Fragment() {
 
     companion object {
         const val TAG = "MapFragment"
+
+        fun newInstance(lat: Double, lon: Double) : MapFragment {
+            val fragment = MapFragment()
+
+            val args = Bundle()
+            fragment.arguments = args
+
+            return fragment
+        }
     }
 
     private var _binding: MapFragmentBinding? = null
@@ -106,13 +116,12 @@ class MapFragment : Fragment() {
         viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
             // update map
             myPositionMarker?.let { marker ->
-                val geoPoint = GeoPoint(location.latitude, location.longitude)
-                marker.position = geoPoint
-
+                marker.position = GeoPoint(location.latitude, location.longitude)
                 if(!binding.mapView.overlays.contains(marker))
                     binding.mapView.overlays.add(marker)
-                binding.mapView.postInvalidate();
             }
+
+            binding.mapView.invalidate()
         })
 
         viewModel.allLocationsWithSub.observe(viewLifecycleOwner, { allLocationsWithSubs ->
