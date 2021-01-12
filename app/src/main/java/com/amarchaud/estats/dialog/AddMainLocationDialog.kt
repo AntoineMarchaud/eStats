@@ -1,5 +1,7 @@
 package com.amarchaud.estats.dialog
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
@@ -13,39 +15,38 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.activityViewModels
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogAddMainLocationBinding
+import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.view.MapFragment
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
+import org.osmdroid.util.GeoPoint
 
 
 class AddMainLocationDialog : DialogFragment() {
 
     companion object {
-        // in  and out
-        const val KEY_LAT = "KEY_LAT"
-        const val KEY_LON = "KEY_LON"
-
         //out
-        const val KEY_DELTA_RETURNED = "KEY_DELTA"
         const val KEY_RESULT_MAIN = "KEY_RESULT_MAIN"
+
+        const val KEY_LAT_RETURNED = "KEY_LAT_RETURNED"
+        const val KEY_LON_RETURNED = "KEY_LON_RETURNED"
+        const val KEY_DELTA_RETURNED = "KEY_DELTA"
         const val KEY_NAME_RETURNED = "KEY_NAME_RETURNED"
 
         val valuesPicker = mutableListOf("10m", "15m", "20m", "25m", "30m", "35m", "40m", "50m", "60m", "70m", "80m", "90m", "100m")
         fun NumberPicker.positionToValue() = valuesPicker[this.value].replace("m", "").toInt()
 
-        fun newInstance(lat: Double, lon: Double): AddMainLocationDialog {
+        fun newInstance(): AddMainLocationDialog {
 
             val fragment = AddMainLocationDialog()
 
             val args = Bundle()
-            args.putDouble(KEY_LAT, lat)
-            args.putDouble(KEY_LON, lon)
-
             fragment.arguments = args
             return fragment
         }
     }
 
+    private lateinit var sharedPref: SharedPreferences
     private val geoPointViewModel: GeoPointViewModel by activityViewModels()
     private val numberPickerViewModel: NumberPickerViewModel by activityViewModels()
 
@@ -53,8 +54,6 @@ class AddMainLocationDialog : DialogFragment() {
     private val binding get() = _binding!!
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString(KEY_LAT, binding.lat.text.toString())
-        outState.putString(KEY_LON, binding.lon.text.toString())
         outState.putString(KEY_NAME_RETURNED, binding.nameEditText.text.toString())
         outState.putInt(KEY_DELTA_RETURNED, binding.numberPickerDelta.value) // index !
         super.onSaveInstanceState(outState)
@@ -62,6 +61,12 @@ class AddMainLocationDialog : DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
+
+
+        sharedPref = requireContext().getSharedPreferences(
+            getString(R.string.shared_pref),
+            Context.MODE_PRIVATE
+        )
 
         _binding = DialogAddMainLocationBinding.inflate(LayoutInflater.from(context))
         return binding.root
@@ -83,18 +88,15 @@ class AddMainLocationDialog : DialogFragment() {
             numberPickerDelta.maxValue = valuesPicker.size - 1
             numberPickerDelta.displayedValues = valuesPicker.toTypedArray()
 
+            lat.text = sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)).toString()
+            lon.text = sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)).toString()
+
             if (savedInstanceState != null) {
-                lat.text = savedInstanceState.getString(KEY_LAT)
-                lon.text = savedInstanceState.getString(KEY_LON)
                 savedInstanceState.getString(KEY_NAME_RETURNED)?.let {
                     nameEditText.text = SpannableStringBuilder(it)
                 }
                 numberPickerDelta.value = savedInstanceState.getInt(KEY_DELTA_RETURNED) // index !
             } else {
-                with(requireArguments()) {
-                    lat.text = getDouble(KEY_LAT).toString()
-                    lon.text = getDouble(KEY_LON).toString()
-                }
                 numberPickerDelta.value = 0 // index !
             }
 
@@ -115,8 +117,8 @@ class AddMainLocationDialog : DialogFragment() {
 
 
                 val result: Bundle = Bundle().apply {
-                    putDouble(KEY_LAT, java.lang.Double.parseDouble(lat.text.toString()))
-                    putDouble(KEY_LON, java.lang.Double.parseDouble(lon.text.toString()))
+                    putDouble(KEY_LAT_RETURNED, java.lang.Double.parseDouble(lat.text.toString()))
+                    putDouble(KEY_LON_RETURNED, java.lang.Double.parseDouble(lon.text.toString()))
                     putString(KEY_NAME_RETURNED, nameEditText.text.toString())
                     putInt(KEY_DELTA_RETURNED, numberPickerDelta.positionToValue())
                 }

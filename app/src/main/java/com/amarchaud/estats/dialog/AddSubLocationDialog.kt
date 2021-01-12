@@ -1,6 +1,8 @@
 package com.amarchaud.estats.dialog
 
 import android.app.Dialog
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
@@ -36,8 +38,8 @@ class AddSubLocationDialog : DialogFragment() {
 
         //out
         const val KEY_RESULT_SUB = "KEY_RESULT_SUB"
-        const val KEY_RETURNED_LAT = "KEY_RETURNED_LAT"
-        const val KEY_RETURNED_LON = "KEY_RETURNED_LON"
+        const val KEY_LAT_RETURNED = "KEY_LAT_RETURNED"
+        const val KEY_LON_RETURNED = "KEY_LON_RETURNED"
         const val KEY_NAME_RETURNED = "KEY_NAME_RETURNED"
 
         fun newInstance(name: String, lat: Double, lon: Double, delta: Int, idMain: Int): AddSubLocationDialog {
@@ -49,8 +51,8 @@ class AddSubLocationDialog : DialogFragment() {
             args.putDouble(KEY_PARENT_LAT, lat)
             args.putDouble(KEY_PARENT_LON, lon)
             args.putString(KEY_PARENT_NAME, name)
-            args.putInt(KEY_PARENT_ID, idMain)
             args.putInt(KEY_PARENT_DELTA, delta)
+            args.putInt(KEY_PARENT_ID, idMain)
 
             fragment.arguments = args
             return fragment
@@ -67,19 +69,22 @@ class AddSubLocationDialog : DialogFragment() {
     private var parentNameStored: String? = null
     private var parentDeltaStored: Int = 0
     private var idMainStored: Int = -1
-    private var myPositionMarker: Marker? = null
+
+    private lateinit var sharedPref: SharedPreferences
 
     override fun onSaveInstanceState(outState: Bundle) {
-        // out
-        outState.putDouble(KEY_RETURNED_LAT, java.lang.Double.parseDouble(binding.lat.text.toString()))
-        outState.putDouble(KEY_RETURNED_LON, java.lang.Double.parseDouble(binding.lon.text.toString()))
         outState.putString(KEY_NAME_RETURNED, binding.nameEditText.text.toString())
-
         super.onSaveInstanceState(outState)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         super.onCreateView(inflater, container, savedInstanceState)
+
+
+        sharedPref = requireContext().getSharedPreferences(
+            getString(R.string.shared_pref),
+            Context.MODE_PRIVATE
+        )
 
         _binding = DialogAddSubLocationBinding.inflate(LayoutInflater.from(context))
         return binding.root
@@ -95,34 +100,14 @@ class AddSubLocationDialog : DialogFragment() {
             transaction.add(R.id.mapViewContainer, childFragment).commit()
         }
 
-        geoPointViewModel.geoLoc.observe(this, { currentLocation ->
-            binding.lat.text = currentLocation.latitude.toString()
-            binding.lon.text = currentLocation.longitude.toString()
-
-            if (Distance.measure(currentLocation.latitude, currentLocation.longitude, parentLatStored, parentLonStored) >= parentDeltaStored) {
-                binding.alertLabel.visibility = View.VISIBLE
-                binding.okButton.isEnabled = false
-            } else {
-                binding.alertLabel.visibility = View.INVISIBLE
-                binding.okButton.isEnabled = true
-            }
-        })
-
-
         with(binding) {
 
-            if (savedInstanceState != null) {
-                // in
-                lat.text = savedInstanceState.getDouble(KEY_RETURNED_LAT).toString()
-                lon.text = savedInstanceState.getDouble(KEY_RETURNED_LON).toString()
+            lat.text = sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)).toString()
+            lon.text = sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)).toString()
 
+            if (savedInstanceState != null) {
                 //out
                 nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME_RETURNED))
-            } else {
-                with(requireArguments()) {
-                    lat.text = getDouble(KEY_PARENT_LAT).toString()
-                    lon.text = getDouble(KEY_PARENT_LON).toString()
-                }
             }
 
             with(requireArguments()) {
@@ -140,8 +125,8 @@ class AddSubLocationDialog : DialogFragment() {
             okButton.setOnClickListener {
 
                 val result: Bundle = Bundle().apply {
-                    putDouble(KEY_RETURNED_LAT, java.lang.Double.parseDouble(lat.text.toString()))
-                    putDouble(KEY_RETURNED_LON, java.lang.Double.parseDouble(lon.text.toString()))
+                    putDouble(KEY_LAT_RETURNED, java.lang.Double.parseDouble(lat.text.toString()))
+                    putDouble(KEY_LON_RETURNED, java.lang.Double.parseDouble(lon.text.toString()))
                     putString(KEY_NAME_RETURNED, nameEditText.text.toString())
                     putInt(KEY_PARENT_ID, idMainStored)
                 }
@@ -155,6 +140,19 @@ class AddSubLocationDialog : DialogFragment() {
                 dismiss()
             }
         }
+
+        geoPointViewModel.geoLoc.observe(this, { currentLocation ->
+            binding.lat.text = currentLocation.latitude.toString()
+            binding.lon.text = currentLocation.longitude.toString()
+
+            if (Distance.measure(currentLocation.latitude, currentLocation.longitude, parentLatStored, parentLonStored) >= parentDeltaStored) {
+                binding.alertLabel.visibility = View.VISIBLE
+                binding.okButton.isEnabled = false
+            } else {
+                binding.alertLabel.visibility = View.INVISIBLE
+                binding.okButton.isEnabled = true
+            }
+        })
 
     }
 

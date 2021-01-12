@@ -40,12 +40,6 @@ class MapFragment : Fragment() {
     private var initCenterX: Double = 0.0
     private var initCenterY: Double = 0.0
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putDouble("mapCenteredX", initCenterX)
-        outState.putDouble("mapCenteredY", initCenterY)
-        super.onSaveInstanceState(outState)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -69,13 +63,8 @@ class MapFragment : Fragment() {
 
             with(mapView) {
 
-                if (savedInstanceState != null) {
-                    initCenterX = savedInstanceState.getDouble("mapCenteredX")
-                    initCenterY = savedInstanceState.getDouble("mapCenteredY")
-                } else {
-                    initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
-                    initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
-                }
+                val initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
+                val initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
                 initMapView(GeoPoint(initCenterX, initCenterY))
 
                 myPositionMarker = Marker(this)

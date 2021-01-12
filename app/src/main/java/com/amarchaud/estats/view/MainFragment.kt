@@ -53,8 +53,6 @@ class MainFragment : Fragment(), FragmentResultListener {
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     private lateinit var sharedPref: SharedPreferences
-    private var initCenterX: Double = 0.0
-    private var initCenterY: Double = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -70,12 +68,6 @@ class MainFragment : Fragment(), FragmentResultListener {
         (activity as AppCompatActivity).supportActionBar?.show()
         _binding = MainFragmentBinding.inflate(inflater)
         return binding.root
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putDouble("mapCenteredX", initCenterX)
-        outState.putDouble("mapCenteredY", initCenterY)
-        super.onSaveInstanceState(outState)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -105,13 +97,8 @@ class MainFragment : Fragment(), FragmentResultListener {
 
             with(mapView) {
 
-                if (savedInstanceState != null) {
-                    initCenterX = savedInstanceState.getDouble("mapCenteredX")
-                    initCenterY = savedInstanceState.getDouble("mapCenteredY")
-                } else {
-                    initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
-                    initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
-                }
+                val initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
+                val initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
                 initMapView(GeoPoint(initCenterX, initCenterY))
 
                 myPositionMarker = Marker(this)
@@ -331,7 +318,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
         // just display popup
         viewModel.dialogAddMainLocation.observe(viewLifecycleOwner, { location ->
-            val customPopup = AddMainLocationDialog.newInstance(location.latitude, location.longitude)
+            val customPopup = AddMainLocationDialog.newInstance()
             customPopup.show(requireActivity().supportFragmentManager, "add new position")
         })
     }
@@ -405,16 +392,16 @@ class MainFragment : Fragment(), FragmentResultListener {
     override fun onFragmentResult(requestKey: String, result: Bundle) {
         if (requestKey == AddMainLocationDialog.KEY_RESULT_MAIN) {
 
-            val lat = result.getDouble(AddMainLocationDialog.KEY_LAT)
-            val lon = result.getDouble(AddMainLocationDialog.KEY_LON)
+            val lat = result.getDouble(AddMainLocationDialog.KEY_LAT_RETURNED)
+            val lon = result.getDouble(AddMainLocationDialog.KEY_LON_RETURNED)
             val nameChoosen = result.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
             val delta = result.getInt(AddMainLocationDialog.KEY_DELTA_RETURNED)
             viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, delta, null)
 
         } else if (requestKey == AddSubLocationDialog.KEY_RESULT_SUB) {
 
-            val lat = result.getDouble(AddSubLocationDialog.KEY_RETURNED_LAT)
-            val lon = result.getDouble(AddSubLocationDialog.KEY_RETURNED_LON)
+            val lat = result.getDouble(AddSubLocationDialog.KEY_LAT_RETURNED)
+            val lon = result.getDouble(AddSubLocationDialog.KEY_LON_RETURNED)
             val nameChoosen = result.getString(AddSubLocationDialog.KEY_NAME_RETURNED)
             val idMain = result.getInt(AddSubLocationDialog.KEY_PARENT_ID)
 
