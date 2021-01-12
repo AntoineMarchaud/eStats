@@ -5,6 +5,7 @@ import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -29,6 +30,9 @@ class AddMainLocationDialog : DialogFragment() {
         const val KEY_RESULT_MAIN = "KEY_RESULT_MAIN"
         const val KEY_NAME_RETURNED = "KEY_NAME_RETURNED"
 
+        val valuesPicker = mutableListOf("10m", "15m", "20m", "25m", "30m", "35m", "40m", "50m", "60m", "70m", "80m", "90m", "100m")
+        fun NumberPicker.positionToValue() = valuesPicker[this.value].replace("m", "").toInt()
+
         fun newInstance(lat: Double, lon: Double): AddMainLocationDialog {
 
             val fragment = AddMainLocationDialog()
@@ -52,7 +56,7 @@ class AddMainLocationDialog : DialogFragment() {
         outState.putString(KEY_LAT, binding.lat.text.toString())
         outState.putString(KEY_LON, binding.lon.text.toString())
         outState.putString(KEY_NAME_RETURNED, binding.nameEditText.text.toString())
-        outState.putInt(KEY_DELTA_RETURNED, binding.numberPickerDelta.value)
+        outState.putInt(KEY_DELTA_RETURNED, binding.numberPickerDelta.value) // index !
         super.onSaveInstanceState(outState)
     }
 
@@ -67,47 +71,44 @@ class AddMainLocationDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // add MapViewFragment
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             val childFragment: Fragment = MapFragment()
             val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
-            transaction.replace(R.id.mapViewContainer, childFragment).commit()
+            transaction.add(R.id.mapViewContainer, childFragment).commit()
         }
 
         with(binding) {
 
-            numberPickerDelta.minValue = 10;
-            numberPickerDelta.maxValue = 100
-
-            numberPickerDelta.setFormatter { i ->
-                i.toString() + "m"
-            }
+            numberPickerDelta.minValue = 0
+            numberPickerDelta.maxValue = valuesPicker.size - 1
+            numberPickerDelta.displayedValues = valuesPicker.toTypedArray()
 
             if (savedInstanceState != null) {
                 lat.text = savedInstanceState.getString(KEY_LAT)
                 lon.text = savedInstanceState.getString(KEY_LON)
-                savedInstanceState.getString(KEY_NAME_RETURNED)?.let{
+                savedInstanceState.getString(KEY_NAME_RETURNED)?.let {
                     nameEditText.text = SpannableStringBuilder(it)
                 }
-                numberPickerDelta.value = savedInstanceState.getInt(KEY_DELTA_RETURNED)
+                numberPickerDelta.value = savedInstanceState.getInt(KEY_DELTA_RETURNED) // index !
             } else {
                 with(requireArguments()) {
                     lat.text = getDouble(KEY_LAT).toString()
                     lon.text = getDouble(KEY_LON).toString()
                 }
-                numberPickerDelta.value = 20
+                numberPickerDelta.value = 0 // index !
             }
 
             // update ViewModel
-            numberPickerViewModel.pickerValue.value = numberPickerDelta.value
+            numberPickerViewModel.pickerValue.value = numberPickerDelta.positionToValue()
             numberPickerDelta.setOnValueChangedListener { numberPicker, i, i2 ->
-                numberPickerViewModel.pickerValue.value = i2
+                numberPickerViewModel.pickerValue.value = numberPickerDelta.positionToValue()
             }
 
             dialogTitle.text = requireContext().getString(R.string.addNewPositionTitle)
 
             okButton.setOnClickListener {
 
-                if(nameEditText.text.isNullOrEmpty()) {
+                if (nameEditText.text.isNullOrEmpty()) {
                     Toast.makeText(requireContext(), getString(R.string.nameEmpty), Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
@@ -117,7 +118,7 @@ class AddMainLocationDialog : DialogFragment() {
                     putDouble(KEY_LAT, java.lang.Double.parseDouble(lat.text.toString()))
                     putDouble(KEY_LON, java.lang.Double.parseDouble(lon.text.toString()))
                     putString(KEY_NAME_RETURNED, nameEditText.text.toString())
-                    putInt(KEY_DELTA_RETURNED, numberPickerDelta.value)
+                    putInt(KEY_DELTA_RETURNED, numberPickerDelta.positionToValue())
                 }
 
                 // send result to Listener(s)

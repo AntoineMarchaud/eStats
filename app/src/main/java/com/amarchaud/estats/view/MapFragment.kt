@@ -51,6 +51,9 @@ class MapFragment : Fragment() {
     private var myPositionMarker: Marker? = null
     private lateinit var sharedPref: SharedPreferences
 
+    private var initCenterX: Double = 0.0
+    private var initCenterY: Double = 0.0
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putDouble("mapCenteredX", binding.mapView.mapCenter?.latitude ?: 0.0)
@@ -79,9 +82,6 @@ class MapFragment : Fragment() {
         with(binding) {
 
             with(mapView) {
-
-                val initCenterX: Double
-                val initCenterY: Double
 
                 if (savedInstanceState != null) {
                     initCenterX = savedInstanceState.getDouble("mapCenteredX")
@@ -125,12 +125,20 @@ class MapFragment : Fragment() {
                     binding.mapView.overlays.add(marker)
             }
 
+            // if the circle around us is already displayed, move it to my position
+            if (binding.mapView.overlayManager.contains(myPositionCircle)) {
+                myPositionCircle?.points = Polygon.pointsAsCircle(
+                    GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY),
+                    numberPickerViewModel.pickerValue.value?.toDouble() ?: 10.0
+                )
+            }
+
             binding.mapView.invalidate()
         })
 
         numberPickerViewModel.pickerValue.observe(viewLifecycleOwner, {
             // update map
-            myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(viewModel.myGeoLoc.value?.latitude ?: 0.0, viewModel.myGeoLoc.value?.longitude ?: 0.0), it.toDouble())
+            myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY), it.toDouble())
             if (!binding.mapView.overlayManager.contains(myPositionCircle))
                 binding.mapView.overlayManager.add(myPositionCircle)
             binding.mapView.invalidate()

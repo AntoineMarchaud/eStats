@@ -22,13 +22,12 @@ import com.xwray.groupie.viewbinding.BindableItem
 class LocationInfoItem(
     private var fragment: MainFragment,
     var locationInfo: LocationInfo,
-    var displayExpanded : Boolean
+    var displayExpanded: Boolean
 ) : // main location info
     BindableItem<ItemLocationBinding>(), ExpandableItem {
 
     // members
     private lateinit var expandableGroup: ExpandableGroup
-    private var sharedPref = fragment.requireContext().getSharedPreferences(fragment.requireContext().getString(R.string.shared_pref), Context.MODE_PRIVATE)
 
     override fun getLayout(): Int = R.layout.item_location
 
@@ -45,26 +44,15 @@ class LocationInfoItem(
             duration.text = TimeTransformation.MillisecondToTimeStr(locationInfo.duration_day)
 
             itemLayout.setOnLongClickListener {
-                val currentLat: Double = java.lang.Double.longBitsToDouble(
-                    sharedPref.getLong(fragment.requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0))
-                )
-                val currentLon: Double = java.lang.Double.longBitsToDouble(
-                    sharedPref.getLong(fragment.requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0))
-                )
 
-                // check if the user position is inside the main element :
-                if (Distance.measure(currentLat, currentLon, locationInfo.lat, locationInfo.lon) < locationInfo.delta) {
-                    val fragmentManager = fragment.requireActivity().supportFragmentManager
-                    val customPopup = AddSubLocationDialog.newInstance(locationInfo.name!!, locationInfo.lat, locationInfo.lon, locationInfo.delta, locationInfo.id)
-                    customPopup.show(fragmentManager, "add new position")
-                } else {
-                    Toast.makeText(fragment.requireContext(), "You must be in the area of the parent !", Toast.LENGTH_SHORT).show()
-                }
+                val fragmentManager = fragment.requireActivity().supportFragmentManager
+                val customPopup = AddSubLocationDialog.newInstance(locationInfo.name!!, locationInfo.lat, locationInfo.lon, locationInfo.delta, locationInfo.id)
+                customPopup.show(fragmentManager, "add new position")
 
                 true
             }
 
-            icExpand.visibility = if(displayExpanded) View.VISIBLE else View.INVISIBLE
+            icExpand.visibility = if (displayExpanded) View.VISIBLE else View.INVISIBLE
             icExpand.setImageResource(if (expandableGroup.isExpanded) R.drawable.ic_collapse else R.drawable.ic_expand)
             icExpand.setOnClickListener {
                 expandableGroup.onToggleExpanded()
