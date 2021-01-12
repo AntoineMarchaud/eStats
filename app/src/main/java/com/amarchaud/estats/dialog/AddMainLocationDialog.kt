@@ -136,9 +136,11 @@ class AddMainLocationDialog : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val childFragment: Fragment = MapFragment()
-        val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
-        transaction.replace(R.id.mapViewContainer, childFragment).commit()
+        if(savedInstanceState == null) {
+            val childFragment: Fragment = MapFragment()
+            val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
+            transaction.replace(R.id.mapViewContainer, childFragment).commit()
+        }
     }
 
 
