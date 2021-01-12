@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">eStats</string>
     <string name="shared_pref">shared_pref</string>
+    <string name="activateGPS">Please activate GPS</string>
     <!-- Shared Pref key -->
     <string name="saved_current_time_ms">saved_current_time_ms</string>
     <string name="saved_location_lat">saved_location_lat</string>
@@ -30,17 +31,16 @@
     <string name="globalPref">globalPref</string>
     <string name="isFirstLaunch">isFirstLaunch</string>
     <!-- custom Dialog -->
-    <string name="yes">Yes</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="no">No</string>
     <string name="addNewPositionTitle">Add a new position</string>
     <string name="nameChoosen">Name</string>
     <string name="addNewSubPositionTitle">Add a new sub position to</string>
     <string name="alertMessage">Impossible to add : you are not in the area</string>
+    <string name="nameEmpty">Please enter a valid name</string>
     <!-- Service -->
     <string name="foregroundTitle">eStats</string>
     <string name="foregroundContext">The app needs your local position when it is in background.</string>
     <string name="foregroundActionButton">Stop that !</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

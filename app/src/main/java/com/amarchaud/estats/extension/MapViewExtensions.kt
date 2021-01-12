@@ -19,8 +19,10 @@ fun MapView.initMapView(center: GeoPoint) {
 fun MapView.addMarker(lat: Double, lon: Double, name: String?) {
     val oneMarker = Marker(this)
     oneMarker.position = GeoPoint(lat, lon)
-    oneMarker.title = name
-    oneMarker.setTextIcon(name) // displayed on screen
+    if(name != null) {
+        oneMarker.title = name
+        oneMarker.setTextIcon(name) // displayed on screen
+    }
     oneMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
     this.overlays.add(oneMarker)
 }

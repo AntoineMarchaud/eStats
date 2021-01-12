@@ -132,7 +132,7 @@ class PositionService : Service() {
         }
 
         // If we get killed, after returning from here, restart
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun createNotificationChannel() {

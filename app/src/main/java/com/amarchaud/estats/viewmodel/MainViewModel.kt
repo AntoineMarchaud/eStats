@@ -11,11 +11,13 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.databinding.Bindable
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.amarchaud.estats.BR
+import com.amarchaud.estats.R
 import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.model.database.AppDao
@@ -230,9 +232,10 @@ class MainViewModel @ViewModelInject constructor(
 
         if (bound) {
             mPositionService?.let {
-                it.geoLoc?.let { location ->
-                    // just say to Fragment to display
-                    dialogAddMainLocation.postValue(location)
+                if(it.geoLoc == null) {
+                    Toast.makeText(app, app.getString(R.string.activateGPS), Toast.LENGTH_LONG).show()
+                } else {
+                    dialogAddMainLocation.postValue(it.geoLoc)
                 }
             }
         }

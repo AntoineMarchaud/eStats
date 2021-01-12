@@ -159,7 +159,7 @@ class AddSubLocationDialog : DialogFragment() {
                 builder
                     .setTitle(it.getString(R.string.addNewSubPositionTitle) + " " + parentNameStored)
                     .setView(binding.root)
-                    .setPositiveButton(R.string.yes) { dialog, _ ->
+                    .setPositiveButton(R.string.ok) { dialog, _ ->
 
                         val result: Bundle = Bundle().apply {
                             putDouble(KEY_RETURNED_LAT, java.lang.Double.parseDouble(lat.text.toString()))
