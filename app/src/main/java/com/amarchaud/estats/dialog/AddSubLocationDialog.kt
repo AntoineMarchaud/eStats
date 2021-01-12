@@ -5,13 +5,18 @@ import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.activityViewModels
 import com.amarchaud.estats.R
+import com.amarchaud.estats.databinding.DialogAddMainLocationBinding
 import com.amarchaud.estats.databinding.DialogAddSubLocationBinding
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.utils.Distance
+import com.amarchaud.estats.view.MapFragment
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
@@ -73,112 +78,84 @@ class AddSubLocationDialog : DialogFragment() {
         super.onSaveInstanceState(outState)
     }
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        super.onCreateDialog(savedInstanceState)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        super.onCreateView(inflater, container, savedInstanceState)
+
+        _binding = DialogAddSubLocationBinding.inflate(LayoutInflater.from(context))
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // add MapViewFragment
+        if (savedInstanceState == null) {
+            val childFragment: Fragment = MapFragment()
+            val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
+            transaction.add(R.id.mapViewContainer, childFragment).commit()
+        }
 
         geoPointViewModel.geoLoc.observe(this, { currentLocation ->
             binding.lat.text = currentLocation.latitude.toString()
             binding.lon.text = currentLocation.longitude.toString()
 
-            val g = GeoPoint(currentLocation.latitude, currentLocation.longitude)
-            binding.mapView.controller.animateTo(g)
-
-            myPositionMarker?.let { marker ->
-                marker.position =  g
-                if (!binding.mapView.overlays.contains(myPositionMarker))
-                    binding.mapView.overlays.add(marker)
-            }
-
             if (Distance.measure(currentLocation.latitude, currentLocation.longitude, parentLatStored, parentLonStored) >= parentDeltaStored) {
                 binding.alertLabel.visibility = View.VISIBLE
-                (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = false
+                binding.okButton.isEnabled = false
             } else {
                 binding.alertLabel.visibility = View.INVISIBLE
-                (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = true
+                binding.okButton.isEnabled = true
             }
         })
 
-        return activity?.let {
 
-            _binding = DialogAddSubLocationBinding.inflate(LayoutInflater.from(context))
+        with(binding) {
 
-            with(binding) {
+            if (savedInstanceState != null) {
+                // in
+                lat.text = savedInstanceState.getDouble(KEY_RETURNED_LAT).toString()
+                lon.text = savedInstanceState.getDouble(KEY_RETURNED_LON).toString()
 
-                val builder = AlertDialog.Builder(it)
-
-                if (savedInstanceState != null) {
-                    // in
-                    lat.text = savedInstanceState.getDouble(KEY_RETURNED_LAT).toString()
-                    lon.text = savedInstanceState.getDouble(KEY_RETURNED_LON).toString()
-
-                    //out
-                    nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME_RETURNED))
-                } else {
-                    with(requireArguments()) {
-                        lat.text = getDouble(KEY_PARENT_LAT).toString()
-                        lon.text = getDouble(KEY_PARENT_LON).toString()
-                    }
-                }
-
+                //out
+                nameEditText.text = SpannableStringBuilder(savedInstanceState.getString(KEY_NAME_RETURNED))
+            } else {
                 with(requireArguments()) {
-                    parentLatStored = getDouble(KEY_PARENT_LAT)
-                    parentLonStored = getDouble(KEY_PARENT_LON)
-                    parentNameStored = getString(KEY_PARENT_NAME)
-                    parentDeltaStored = getInt(KEY_PARENT_DELTA)
-
-                    // in and out
-                    idMainStored = getInt(KEY_PARENT_ID)
+                    lat.text = getDouble(KEY_PARENT_LAT).toString()
+                    lon.text = getDouble(KEY_PARENT_LON).toString()
                 }
-
-                mapView.apply {
-
-                    val initCenterX: Double
-                    val initCenterY: Double
-
-                    if (savedInstanceState != null) {
-                        initCenterX = savedInstanceState.getDouble(AddMainLocationDialog.KEY_LAT)
-                        initCenterY = savedInstanceState.getDouble(AddMainLocationDialog.KEY_LON)
-                    } else {
-                        initCenterX = requireArguments().getDouble(KEY_PARENT_LAT)
-                        initCenterY = requireArguments().getDouble(KEY_PARENT_LON)
-                    }
-
-                    initMapView(GeoPoint(initCenterX, initCenterY))
-
-                    myPositionMarker = Marker(this)
-                    myPositionMarker?.let { marker ->
-                        val geoPoint = GeoPoint(initCenterX, initCenterY)
-                        marker.position = geoPoint
-                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-
-                        if (!mapView.overlays.contains(myPositionMarker))
-                            overlays.add(marker)
-                    }
-                }
-
-                builder
-                    .setTitle(it.getString(R.string.addNewSubPositionTitle) + " " + parentNameStored)
-                    .setView(binding.root)
-                    .setPositiveButton(R.string.ok) { dialog, _ ->
-
-                        val result: Bundle = Bundle().apply {
-                            putDouble(KEY_RETURNED_LAT, java.lang.Double.parseDouble(lat.text.toString()))
-                            putDouble(KEY_RETURNED_LON, java.lang.Double.parseDouble(lon.text.toString()))
-                            putString(KEY_NAME_RETURNED, nameEditText.text.toString())
-                            putInt(KEY_PARENT_ID, idMainStored)
-                        }
-
-                        // send result to Listener(s)
-                        parentFragmentManager.setFragmentResult(KEY_RESULT_SUB, result)
-                        dialog?.dismiss()
-                    }
-                    .setNegativeButton(R.string.cancel) { dialog, _ ->
-                        dialog?.cancel()
-                    }
-
-                builder.create()
             }
-        } ?: throw IllegalStateException("Activity cannot be null")
+
+            with(requireArguments()) {
+                parentLatStored = getDouble(KEY_PARENT_LAT)
+                parentLonStored = getDouble(KEY_PARENT_LON)
+                parentNameStored = getString(KEY_PARENT_NAME)
+                parentDeltaStored = getInt(KEY_PARENT_DELTA)
+
+                // in and out
+                idMainStored = getInt(KEY_PARENT_ID)
+            }
+
+            dialogTitle.text = getString(R.string.addNewPositionToMainTitle, parentNameStored)
+
+            okButton.setOnClickListener {
+
+                val result: Bundle = Bundle().apply {
+                    putDouble(KEY_RETURNED_LAT, java.lang.Double.parseDouble(lat.text.toString()))
+                    putDouble(KEY_RETURNED_LON, java.lang.Double.parseDouble(lon.text.toString()))
+                    putString(KEY_NAME_RETURNED, nameEditText.text.toString())
+                    putInt(KEY_PARENT_ID, idMainStored)
+                }
+
+                // send result to Listener(s)
+                parentFragmentManager.setFragmentResult(KEY_RESULT_SUB, result)
+                dialog?.dismiss()
+            }
+
+            cancelButton.setOnClickListener {
+                dismiss()
+            }
+        }
+
     }
 
 

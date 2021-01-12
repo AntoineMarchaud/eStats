@@ -35,6 +35,7 @@
     <string name="cancel">Cancel</string>
     <string name="no">No</string>
     <string name="addNewPositionTitle">Add a new position</string>
+    <string name="addNewPositionToMainTitle">Add a new position to : %1$s</string>
     <string name="nameChoosen">Name</string>
     <string name="addNewSubPositionTitle">Add a new sub position to</string>
     <string name="alertMessage">Impossible to add : you are not in the area</string>
