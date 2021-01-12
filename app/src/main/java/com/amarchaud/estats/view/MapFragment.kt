@@ -41,9 +41,9 @@ class MapFragment : Fragment() {
     private var initCenterY: Double = 0.0
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putDouble("mapCenteredX", initCenterX)
+        outState.putDouble("mapCenteredY", initCenterY)
         super.onSaveInstanceState(outState)
-        outState.putDouble("mapCenteredX", binding.mapView.mapCenter?.latitude ?: 0.0)
-        outState.putDouble("mapCenteredY", binding.mapView.mapCenter?.longitude ?: 0.0)
     }
 
     override fun onCreateView(

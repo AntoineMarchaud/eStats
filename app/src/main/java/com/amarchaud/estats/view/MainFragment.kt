@@ -53,6 +53,8 @@ class MainFragment : Fragment(), FragmentResultListener {
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     private lateinit var sharedPref: SharedPreferences
+    private var initCenterX: Double = 0.0
+    private var initCenterY: Double = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -70,6 +72,11 @@ class MainFragment : Fragment(), FragmentResultListener {
         return binding.root
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putDouble("mapCenteredX", initCenterX)
+        outState.putDouble("mapCenteredY", initCenterY)
+        super.onSaveInstanceState(outState)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -98,8 +105,13 @@ class MainFragment : Fragment(), FragmentResultListener {
 
             with(mapView) {
 
-                val initCenterX: Double = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
-                val initCenterY: Double = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
+                if (savedInstanceState != null) {
+                    initCenterX = savedInstanceState.getDouble("mapCenteredX")
+                    initCenterY = savedInstanceState.getDouble("mapCenteredY")
+                } else {
+                    initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
+                    initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
+                }
                 initMapView(GeoPoint(initCenterX, initCenterY))
 
                 myPositionMarker = Marker(this)
