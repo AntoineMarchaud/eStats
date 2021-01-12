@@ -77,7 +77,7 @@ class AddMainLocationDialog : DialogFragment() {
 
         // add MapViewFragment
         if (savedInstanceState == null) {
-            val childFragment: Fragment = MapFragment()
+            val childFragment: Fragment = MapFragment.newInstance(MapFragment.MODE_MAIN)
             val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
             transaction.add(R.id.mapViewContainer, childFragment).commit()
         }

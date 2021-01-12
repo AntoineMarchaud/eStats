@@ -12,6 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.MapFragmentBinding
+import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.createCircle
 import com.amarchaud.estats.extension.addCircle
@@ -26,6 +27,23 @@ import org.osmdroid.views.overlay.Polygon
 
 @AndroidEntryPoint
 class MapFragment : Fragment() {
+
+    companion object {
+
+        const val MODE_NORMAL = 0
+        const val MODE_MAIN = 1
+        const val MODE_SUB = 2
+
+        fun newInstance(mode: Int = MODE_NORMAL): MapFragment {
+
+            val fragment = MapFragment()
+
+            val args = Bundle()
+            args.putInt("mode", mode)
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
     private var _binding: MapFragmentBinding? = null
     private val binding get() = _binding!!
@@ -77,8 +95,16 @@ class MapFragment : Fragment() {
                         overlayManager.add(marker)
                 }
 
-                myPositionCircle =
-                    createCircle(GeoPoint(initCenterX, initCenterY), numberPickerViewModel.pickerValue.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1)
+                when (requireArguments().getInt("mode")) {
+                    MODE_MAIN -> {
+                        myPositionCircle =
+                            createCircle(GeoPoint(initCenterX, initCenterY), numberPickerViewModel.pickerValue.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1)
+                    }
+                    MODE_SUB -> {
+                        myPositionCircle =
+                            createCircle(GeoPoint(initCenterX, initCenterY), 7.toDouble(), requireContext().getColor(R.color.subLocationCircleColor), -1)
+                    }
+                }
             }
 
             with(centerView) {
@@ -100,12 +126,22 @@ class MapFragment : Fragment() {
                     binding.mapView.overlayManager.add(marker)
             }
 
-            // if the circle around us is already displayed, move it to my position
-            if (binding.mapView.overlayManager.contains(myPositionCircle)) {
-                myPositionCircle?.points = Polygon.pointsAsCircle(
-                    GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY),
-                    numberPickerViewModel.pickerValue.value?.toDouble() ?: 10.0
-                )
+            when (requireArguments().getInt("mode")) {
+                MODE_MAIN -> {
+                    myPositionCircle?.points = Polygon.pointsAsCircle(
+                        GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY),
+                        numberPickerViewModel.pickerValue.value?.toDouble() ?: 10.0
+                    )
+                    if (!binding.mapView.overlayManager.contains(myPositionCircle))
+                        binding.mapView.overlayManager.add(myPositionCircle)
+                }
+                MODE_SUB -> {
+                    myPositionCircle?.points = Polygon.pointsAsCircle(
+                        GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY), 7.toDouble()
+                    )
+                    if (!binding.mapView.overlayManager.contains(myPositionCircle))
+                        binding.mapView.overlayManager.add(myPositionCircle)
+                }
             }
 
             binding.mapView.invalidate()
@@ -119,28 +155,28 @@ class MapFragment : Fragment() {
             binding.mapView.invalidate()
         })
 
+        viewModel.allLocationsWithSub.observe(viewLifecycleOwner,
+            { allLocationsWithSubs ->
 
-        viewModel.allLocationsWithSub.observe(viewLifecycleOwner, { allLocationsWithSubs ->
+                allLocationsWithSubs.forEach { locationWithSubs ->
 
-            allLocationsWithSubs.forEach { locationWithSubs ->
+                    // add markers
+                    with(locationWithSubs) {
 
-                // add markers
-                with(locationWithSubs) {
+                        with(this.locationInfo) {
+                            binding.mapView.addMarker(lat, lon, name, id)
+                            binding.mapView.addCircle(GeoPoint(lat, lon), this.delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
+                        }
 
-                    with(this.locationInfo) {
-                        binding.mapView.addMarker(lat, lon, name, id)
-                        binding.mapView.addCircle(GeoPoint(lat, lon), this.delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
-                    }
-
-                    // todo add subitem marker ?
-                    with(this.subLocation) {
-                        forEach {
-                            binding.mapView.addCircle(GeoPoint(it.lat, it.lon), it.delta.toDouble(), requireContext().getColor(R.color.subLocationCircleColor), it.idSub)
+                        // todo add subitem marker ?
+                        with(this.subLocation) {
+                            forEach {
+                                binding.mapView.addCircle(GeoPoint(it.lat, it.lon), it.delta.toDouble(), requireContext().getColor(R.color.subLocationCircleColor), it.idSub)
+                            }
                         }
                     }
                 }
-            }
-        })
+            })
 
     }
 

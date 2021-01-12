@@ -8,6 +8,7 @@ import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -95,7 +96,7 @@ class AddSubLocationDialog : DialogFragment() {
 
         // add MapViewFragment
         if (savedInstanceState == null) {
-            val childFragment: Fragment = MapFragment()
+            val childFragment: Fragment = MapFragment.newInstance(MapFragment.MODE_SUB)
             val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
             transaction.add(R.id.mapViewContainer, childFragment).commit()
         }
@@ -123,6 +124,11 @@ class AddSubLocationDialog : DialogFragment() {
             dialogTitle.text = getString(R.string.addNewPositionToMainTitle, parentNameStored)
 
             okButton.setOnClickListener {
+
+                if (nameEditText.text.isNullOrEmpty()) {
+                    Toast.makeText(requireContext(), getString(R.string.nameEmpty), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
 
                 val result: Bundle = Bundle().apply {
                     putDouble(KEY_LAT_RETURNED, java.lang.Double.parseDouble(lat.text.toString()))
