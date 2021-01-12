@@ -18,12 +18,10 @@ import com.amarchaud.estats.adapter.LocationInfoItem
 import com.amarchaud.estats.adapter.LocationInfoSubItem
 import com.amarchaud.estats.adapter.decoration.SwipeTouchCallback
 import com.amarchaud.estats.databinding.MainFragmentBinding
-import com.amarchaud.estats.extension.addMarker
-import com.amarchaud.estats.extension.removeMarker
 import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
-import com.amarchaud.estats.extension.drawCircle
-import com.amarchaud.estats.extension.initMapView
+import com.amarchaud.estats.extension.*
+import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import com.xwray.groupie.ExpandableGroup
@@ -126,8 +124,8 @@ class MainFragment : Fragment(), FragmentResultListener {
                     marker.position = geoPoint
                     marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
-                    if (!mapView.overlays.contains(myPositionMarker))
-                        overlays.add(marker)
+                    if (!overlayManager.contains(myPositionMarker))
+                        overlayManager.add(marker)
                 }
             }
 
@@ -185,8 +183,8 @@ class MainFragment : Fragment(), FragmentResultListener {
                 with(locationWithSubs) {
 
                     with(this.locationInfo) {
-                        binding.mapView.addMarker(lat, lon, name)
-                        binding.mapView.drawCircle(GeoPoint(lat,lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor))
+                        binding.mapView.addMarker(lat, lon, name, id)
+                        binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
                     }
 
                     // todo add subitem marker ?
@@ -226,7 +224,8 @@ class MainFragment : Fragment(), FragmentResultListener {
                     with(locationWithSubs) {
 
                         with(this.locationInfo) {
-                            binding.mapView.addMarker(lat, lon, name)
+                            binding.mapView.addMarker(lat, lon, name, id)
+                            binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
                         }
 
                         // todo add subitem marker ?
@@ -244,7 +243,8 @@ class MainFragment : Fragment(), FragmentResultListener {
                     with(locationWithSubs) {
 
                         with(this.locationInfo) {
-                            binding.mapView.removeMarker(lat, lon, name)
+                            binding.mapView.removeMarker(id)
+                            binding.mapView.removeCirle(id)
                         }
 
                         // todo remove subitem marker ?
@@ -382,7 +382,6 @@ class MainFragment : Fragment(), FragmentResultListener {
             addCustomPositionActionButton.animate().translationY(0.0f)
         }
     }
-
 
 
     private val swipeCallback: TouchCallback by lazy {

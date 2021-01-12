@@ -9,7 +9,7 @@ import javax.annotation.Nullable
 
 @Entity(tableName = "SubLocations")
 data class LocationInfoSub(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "idSub") @Nullable val idSub: Int? = null,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "idSub") val idSub: Int = 0,
     @ColumnInfo(name = "idMain") @Nullable val idMain: Int? = null, // the id from LocationInfo
     @ColumnInfo(name = "name") @Nullable val name: String? = null,
     @ColumnInfo(name = "delta") val delta: Int = 7,

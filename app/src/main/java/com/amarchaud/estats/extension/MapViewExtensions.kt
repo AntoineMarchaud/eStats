@@ -16,28 +16,33 @@ fun MapView.initMapView(center: GeoPoint) {
     setExpectedCenter(center)
 }
 
-fun MapView.addMarker(lat: Double, lon: Double, name: String?) {
+
+fun MapView.addMarker(lat: Double, lon: Double, title: String?, id: Int) {
     val oneMarker = Marker(this)
     oneMarker.position = GeoPoint(lat, lon)
-    if(name != null) {
-        oneMarker.title = name
-        oneMarker.setTextIcon(name) // displayed on screen
+    if (title != null) {
+        oneMarker.title = title // display when click on the marker
+        oneMarker.setTextIcon(title) // displayed on screen
     }
+    if (id >= 0)
+        oneMarker.id = id.toString()
     oneMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-    this.overlays.add(oneMarker)
+    this.overlayManager.add(oneMarker)
 }
 
-fun MapView.removeMarker(lat: Double, lon: Double, name: String?) {
-    this.overlays.firstOrNull {
-        if (it is Marker) (it.position.latitude == lat && it.position.longitude == lon && it.title == name) else false
-    }?.let {
-        this.overlays.remove(it)
-        this.requestLayout()
+fun MapView.removeMarker(id: Int) {
+    if (id >= 0) {
+        this.overlays.firstOrNull {
+            if (it is Marker) (it.id == id.toString()) else false
+        }?.let {
+            this.overlayManager.remove(it)
+            this.requestLayout()
+        }
     }
 }
 
 
-fun MapView.createCircle(center: GeoPoint, radiusInMeters: Double, color: Int): Polygon {
+fun MapView.createCircle(center: GeoPoint, radiusInMeters: Double, color: Int, id: Int): Polygon {
     val circle: List<GeoPoint> = Polygon.pointsAsCircle(center, radiusInMeters)
     val p = Polygon(this).apply {
         points = circle
@@ -46,12 +51,25 @@ fun MapView.createCircle(center: GeoPoint, radiusInMeters: Double, color: Int): 
             this.color = color
         }
     }
+    if (id >= 0)
+        p.id = id.toString()
     return p
 }
 
-fun MapView.drawCircle(center: GeoPoint, radiusInMeters: Double, color: Int) {
-    val p = createCircle(center, radiusInMeters, color)
-    if (!overlayManager.contains(p))
-        overlayManager.add(p)
+
+fun MapView.addCircle(center: GeoPoint, radiusInMeters: Double, color: Int, id: Int) {
+    val p = createCircle(center, radiusInMeters, color, id)
+    this.overlayManager.add(p)
     invalidate()
+}
+
+fun MapView.removeCirle(id: Int) {
+    if (id >= 0) {
+        this.overlays.firstOrNull {
+            if (it is Polygon) (it.id == id.toString()) else false
+        }?.let {
+            this.overlayManager.remove(it)
+            this.requestLayout()
+        }
+    }
 }
