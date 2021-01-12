@@ -11,7 +11,7 @@ import org.osmdroid.views.overlay.Polygon
 fun MapView.initMapView(center: GeoPoint) {
     Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
     setTileSource(TileSourceFactory.MAPNIK)
-    setMultiTouchControls(false)
+    setMultiTouchControls(true)
     controller.setZoom(15.0)
     setExpectedCenter(center)
 }
