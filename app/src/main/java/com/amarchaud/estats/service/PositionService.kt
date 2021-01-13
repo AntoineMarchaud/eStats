@@ -6,21 +6,27 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.graphics.drawable.Icon
 import android.os.*
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.navigation.NavDeepLinkBuilder
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.amarchaud.estats.R
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.entity.LocationInfoSub
+import com.amarchaud.estats.utils.TimeTransformation
 import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.time.*
+import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
@@ -116,6 +122,14 @@ class PositionService : Service() {
         }
 
         createNotificationChannel()
+        createWorkerResetRequest()
+    }
+
+    private fun createWorkerResetRequest() {
+        ResetDurationWorker.prepareNextReset(AppDao.DurationType.DURATION_DAY, this)
+        ResetDurationWorker.prepareNextReset(AppDao.DurationType.DURATION_WEEK, this)
+        ResetDurationWorker.prepareNextReset(AppDao.DurationType.DURATION_MONTH, this)
+        ResetDurationWorker.prepareNextReset(AppDao.DurationType.DURATION_YEAR, this)
     }
 
     override fun onDestroy() {

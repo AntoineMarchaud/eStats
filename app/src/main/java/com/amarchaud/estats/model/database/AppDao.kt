@@ -22,6 +22,53 @@ interface AppDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(locationInfoSub: LocationInfoSub)
 
+    enum class DurationType(val value: Int) {
+        DURATION_DAY(0), DURATION_WEEK(1), DURATION_MONTH(2), DURATION_YEAR(3), DURATION_ALL_TIME(4)
+    }
+
+    suspend fun resetLocationDuration(locationWithSubs: LocationWithSubs, durationType: DurationType) {
+
+        locationWithSubs.subLocation.forEach {
+            it.apply {
+                if (durationType >= DurationType.DURATION_DAY) {
+                    duration_day = 0
+                    if (durationType >= DurationType.DURATION_WEEK) {
+                        duration_week = 0
+                        if (durationType >= DurationType.DURATION_MONTH) {
+                            duration_month = 0
+                            if (durationType >= DurationType.DURATION_YEAR) {
+                                duration_year = 0
+                                if (durationType == DurationType.DURATION_ALL_TIME) {
+                                    duration_all_time = 0
+                                }
+                            }
+                        }
+                    }
+                }
+                update(this)
+            }
+        }
+
+        locationWithSubs.locationInfo.apply {
+            if (durationType >= DurationType.DURATION_DAY) {
+                duration_day = 0
+                if (durationType >= DurationType.DURATION_WEEK) {
+                    duration_week = 0
+                    if (durationType >= DurationType.DURATION_WEEK) {
+                        duration_month = 0
+                        if (durationType >= DurationType.DURATION_YEAR) {
+                            duration_year = 0
+                            if (durationType == DurationType.DURATION_ALL_TIME) {
+                                duration_all_time = 0
+                            }
+                        }
+                    }
+                }
+            }
+            update(this)
+        }
+    }
+
     suspend fun updateLocationDuration(id: Int, inc: Long = 1000) {
         getOneLocation(id).apply {
             duration_day += inc
@@ -99,7 +146,7 @@ interface AppDao {
     @Query("SELECT * from Locations WHERE id==:id LIMIT 1")
     suspend fun getOneLocationWithSubs(id: Int): LocationWithSubs
 
-    // Other methods
+// Other methods
 
     /**
      * Find all location where I am inside (generally only one)

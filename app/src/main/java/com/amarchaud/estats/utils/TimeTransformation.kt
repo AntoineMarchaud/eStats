@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 object TimeTransformation {
 
-    fun MillisecondToTimeStr(timeMs: Long): String {
+    fun millisecondToTimeStr(timeMs: Long): String {
         return when (timeMs) {
             in (0L..60000L) -> { // < 1 min
                 String.format(

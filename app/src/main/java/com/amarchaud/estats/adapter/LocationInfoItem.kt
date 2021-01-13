@@ -1,15 +1,12 @@
 package com.amarchaud.estats.adapter
 
-import android.content.Context
 import android.graphics.drawable.Animatable
 import android.view.View
-import android.widget.Toast
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.ItemLocationBinding
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.dialog.AddSubLocationDialog
-import com.amarchaud.estats.utils.Distance
 import com.amarchaud.estats.utils.TimeTransformation
 import com.amarchaud.estats.view.MainFragment
 import com.xwray.groupie.ExpandableGroup
@@ -41,7 +38,7 @@ class LocationInfoItem(
             name.text = locationInfo.name
             lat.text = locationInfo.lat.toString()
             lon.text = locationInfo.lon.toString()
-            duration.text = TimeTransformation.MillisecondToTimeStr(locationInfo.duration_day)
+            duration.text = TimeTransformation.millisecondToTimeStr(locationInfo.duration_day)
 
             itemLayout.setOnLongClickListener {
 
