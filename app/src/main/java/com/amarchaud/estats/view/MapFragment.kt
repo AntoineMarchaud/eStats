@@ -30,6 +30,7 @@ class MapFragment : Fragment() {
 
     companion object {
         const val MODE = "Mode"
+
         const val MODE_NORMAL = 0
         const val MODE_MAIN = 1
         const val MODE_SUB = 2
@@ -40,7 +41,7 @@ class MapFragment : Fragment() {
             val fragment = MapFragment()
 
             val args = Bundle()
-            args.putInt("mode", mode)
+            args.putInt(MODE, mode)
             fragment.arguments = args
             return fragment
         }
@@ -97,7 +98,7 @@ class MapFragment : Fragment() {
                         overlayManager.add(marker)
                 }
 
-                when (requireArguments().getInt("mode")) {
+                when (requireArguments().getInt(MODE)) {
                     MODE_MAIN -> {
                         myPositionCircle =
                             createCircle(GeoPoint(initCenterX, initCenterY), numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1)
