@@ -15,11 +15,9 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.activityViewModels
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogAddMainLocationBinding
-import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.view.MapFragment
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
-import org.osmdroid.util.GeoPoint
 
 
 class AddMainLocationDialog : DialogFragment() {
@@ -34,7 +32,7 @@ class AddMainLocationDialog : DialogFragment() {
         const val KEY_NAME_RETURNED = "KEY_NAME_RETURNED"
 
         val valuesPicker = mutableListOf("10m", "15m", "20m", "25m", "30m", "35m", "40m", "50m", "60m", "70m", "80m", "90m", "100m")
-        fun NumberPicker.positionToValue() = valuesPicker[this.value].replace("m", "").toInt()
+        fun NumberPicker.positionToRadiusInMeter() = valuesPicker[this.value].replace("m", "").toInt()
 
         fun newInstance(): AddMainLocationDialog {
 
@@ -101,9 +99,9 @@ class AddMainLocationDialog : DialogFragment() {
             }
 
             // update ViewModel
-            numberPickerViewModel.pickerValue.value = numberPickerDelta.positionToValue()
-            numberPickerDelta.setOnValueChangedListener { numberPicker, i, i2 ->
-                numberPickerViewModel.pickerValue.value = numberPickerDelta.positionToValue()
+            numberPickerViewModel.pickerValueMutableLiveData.value = numberPickerDelta.positionToRadiusInMeter()
+            numberPickerDelta.setOnValueChangedListener { _, _, i2 ->
+                numberPickerViewModel.pickerValueMutableLiveData.value = numberPickerDelta.positionToRadiusInMeter()
             }
 
             dialogTitle.text = requireContext().getString(R.string.addNewPositionTitle)
@@ -120,7 +118,7 @@ class AddMainLocationDialog : DialogFragment() {
                     putDouble(KEY_LAT_RETURNED, java.lang.Double.parseDouble(lat.text.toString()))
                     putDouble(KEY_LON_RETURNED, java.lang.Double.parseDouble(lon.text.toString()))
                     putString(KEY_NAME_RETURNED, nameEditText.text.toString())
-                    putInt(KEY_DELTA_RETURNED, numberPickerDelta.positionToValue())
+                    putInt(KEY_DELTA_RETURNED, numberPickerDelta.positionToRadiusInMeter())
                 }
 
                 // send result to Listener(s)

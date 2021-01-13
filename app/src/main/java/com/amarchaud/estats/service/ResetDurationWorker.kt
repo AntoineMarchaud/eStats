@@ -43,6 +43,7 @@ class ResetDurationWorker @WorkerInject constructor(
                         nextCalendar.add(Calendar.HOUR_OF_DAY, 24)
                         timeMsDiff = nextCalendar.timeInMillis - currentDate.timeInMillis
                     }
+                    //timeMsDiff = 1000L
                     Log.d(TAG, "next day reset in $timeMsDiff milli : ${TimeTransformation.millisecondToTimeStr(timeMsDiff)}")
                 }
                 AppDao.DurationType.DURATION_WEEK -> {

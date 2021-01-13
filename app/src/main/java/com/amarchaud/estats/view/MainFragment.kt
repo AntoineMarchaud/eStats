@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.NumberPicker
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.*
 import androidx.navigation.Navigation
@@ -37,8 +38,18 @@ import org.osmdroid.views.overlay.Marker
 class MainFragment : Fragment(), FragmentResultListener {
 
     companion object {
-        const val TAG = "MainFragment"
+
+        //const val TAG = "MainFragment"
+        const val KEY_INDEX_PICKER = "KEY_INDEX_PICKER"
+
+        enum class DurationType(val value: Int) {
+            DAY(0), WEEK(1), MONTH(2), YEAR(3), ALL_TIME(4)
+        }
+
+        val valuesPicker = mutableListOf("Day", "Week", "Month", "Year", "All Time")
     }
+
+    private var pickerValueIndexStored = 0
 
     private var isFABOpen: Boolean = false
 
@@ -70,6 +81,11 @@ class MainFragment : Fragment(), FragmentResultListener {
         return binding.root
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt(KEY_INDEX_PICKER, pickerValueIndexStored) // index !
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.mainViewModel = viewModel
@@ -90,10 +106,29 @@ class MainFragment : Fragment(), FragmentResultListener {
                 adapter = groupAdapter
 
                 // avoid blink when item is modified
-                (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false;
+                (this.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
 
                 ItemTouchHelper(swipeCallback).attachToRecyclerView(this)
             }
+
+            with(typeDisplayedPicker) {
+
+                minValue = 0
+                maxValue = valuesPicker.size - 1
+                displayedValues = valuesPicker.toTypedArray()
+
+                setOnValueChangedListener { _, _, i2 ->
+                    // i2 = index !
+                    pickerValueIndexStored = i2
+
+                    // refresh everything !
+                    groupAdapter.notifyDataSetChanged()
+                }
+
+                pickerValueIndexStored = savedInstanceState?.getInt(KEY_INDEX_PICKER) ?: 0
+                typeDisplayedPicker.value = pickerValueIndexStored
+            }
+
 
             with(mapView) {
 
@@ -115,9 +150,9 @@ class MainFragment : Fragment(), FragmentResultListener {
             with(mainFloatingActionButton) {
                 setOnClickListener {
                     if (!isFABOpen) {
-                        showFABMenu();
+                        showFABMenu()
                     } else {
-                        closeFABMenu();
+                        closeFABMenu()
                     }
                 }
             }
@@ -155,10 +190,10 @@ class MainFragment : Fragment(), FragmentResultListener {
 
             allLocationsWithSubs.forEach { locationWithSubs ->
 
-                val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo, locationWithSubs.subLocation.size > 0)
+                val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo, locationWithSubs.subLocation.size > 0, pickerValueIndexStored)
                 val expandableLocationWithSub = ExpandableGroup(header)
                 locationWithSubs.subLocation.forEach {
-                    expandableLocationWithSub.add(LocationInfoSubItem(it))
+                    expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
                 }
                 groupAdapter.add(expandableLocationWithSub)
 
@@ -196,10 +231,10 @@ class MainFragment : Fragment(), FragmentResultListener {
 
                 MainViewModel.Companion.TypeItem.ITEM_INSERTED -> {
 
-                    val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo, locationWithSubs.subLocation.size > 0)
+                    val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo, locationWithSubs.subLocation.size > 0, pickerValueIndexStored)
                     val expandableLocationWithSub = ExpandableGroup(header)
                     locationWithSubs.subLocation.forEach {
-                        expandableLocationWithSub.add(LocationInfoSubItem(it))
+                        expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
                     }
                     groupAdapter.add(expandableLocationWithSub)
 
@@ -261,6 +296,7 @@ class MainFragment : Fragment(), FragmentResultListener {
                     // expandableLocationWithSub.getGroup(0) = header
                     (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
                         this.locationInfo = locationInfo
+                        this.typeIndexDisplayed = pickerValueIndexStored
                         //notifyChanged() // no use for parent, only for children
                     }
                     expandableLocationWithSub.notifyItemChanged(0)
@@ -281,7 +317,7 @@ class MainFragment : Fragment(), FragmentResultListener {
             when (type) {
                 MainViewModel.Companion.TypeSubItem.ITEM_INSERTED -> {
                     val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
-                    expandableLocationWithSub.add(LocationInfoSubItem(locationInfoSub))
+                    expandableLocationWithSub.add(LocationInfoSubItem(locationInfoSub, pickerValueIndexStored))
 
                     (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
                         this.displayExpanded = true
@@ -294,7 +330,8 @@ class MainFragment : Fragment(), FragmentResultListener {
                     val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
                     // expandableLocationWithSub.getGroup(0) = header
                     (expandableLocationWithSub.getGroup(1 + indexSub) as LocationInfoSubItem).apply {
-                        this.locationInfoSub = locationInfoSub
+                        this.locationInfoSubParam = locationInfoSub
+                        this.typeIndexDisplayed = pickerValueIndexStored
                         notifyChanged()
                     }
                 }
@@ -317,7 +354,7 @@ class MainFragment : Fragment(), FragmentResultListener {
         })
 
         // just display popup
-        viewModel.dialogAddMainLocation.observe(viewLifecycleOwner, { location ->
+        viewModel.dialogAddMainLocation.observe(viewLifecycleOwner, {
             val customPopup = AddMainLocationDialog.newInstance()
             customPopup.show(requireActivity().supportFragmentManager, "add new position")
         })
@@ -382,7 +419,7 @@ class MainFragment : Fragment(), FragmentResultListener {
                 if (direction == ItemTouchHelper.LEFT) {
                     when (val item = groupAdapter.getItem(viewHolder.adapterPosition)) {
                         is LocationInfoItem -> viewModel.deleteItem(item.locationInfo)
-                        is LocationInfoSubItem -> viewModel.deleteSubItem(item.locationInfoSub)
+                        is LocationInfoSubItem -> viewModel.deleteSubItem(item.locationInfoSubParam)
                     }
                 }
             }

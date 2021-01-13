@@ -2,7 +2,6 @@ package com.amarchaud.estats.view
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,7 +11,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.MapFragmentBinding
-import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.createCircle
 import com.amarchaud.estats.extension.addCircle
@@ -98,7 +96,7 @@ class MapFragment : Fragment() {
                 when (requireArguments().getInt("mode")) {
                     MODE_MAIN -> {
                         myPositionCircle =
-                            createCircle(GeoPoint(initCenterX, initCenterY), numberPickerViewModel.pickerValue.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1)
+                            createCircle(GeoPoint(initCenterX, initCenterY), numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1)
                     }
                     MODE_SUB -> {
                         myPositionCircle =
@@ -130,7 +128,7 @@ class MapFragment : Fragment() {
                 MODE_MAIN -> {
                     myPositionCircle?.points = Polygon.pointsAsCircle(
                         GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY),
-                        numberPickerViewModel.pickerValue.value?.toDouble() ?: 10.0
+                        numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 10.0
                     )
                     if (!binding.mapView.overlayManager.contains(myPositionCircle))
                         binding.mapView.overlayManager.add(myPositionCircle)
@@ -147,7 +145,7 @@ class MapFragment : Fragment() {
             binding.mapView.invalidate()
         })
 
-        numberPickerViewModel.pickerValue.observe(viewLifecycleOwner, {
+        numberPickerViewModel.pickerValueMutableLiveData.observe(viewLifecycleOwner, {
             // update map
             myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY), it.toDouble())
             if (!binding.mapView.overlayManager.contains(myPositionCircle))

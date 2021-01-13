@@ -6,6 +6,10 @@
     <data>
 
         <variable
+            name="DurationType"
+            type="com.amarchaud.estats.view.MainFragment.Companion.DurationType" />
+
+        <variable
             name="LocationInfoSub"
             type="com.amarchaud.estats.model.entity.LocationInfoSub" />
 
@@ -57,8 +61,7 @@
             android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/lon"
-            app:layout_constraintTop_toTopOf="parent"
-            app:onLongMsToTime="@{LocationInfoSub.duration_day}"/>
+            app:layout_constraintTop_toTopOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

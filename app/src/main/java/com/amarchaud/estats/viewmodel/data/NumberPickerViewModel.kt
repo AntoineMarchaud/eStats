@@ -4,5 +4,5 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class NumberPickerViewModel : ViewModel() {
-    val pickerValue = MutableLiveData<Int>()
+    val pickerValueMutableLiveData = MutableLiveData<Int>()
 }

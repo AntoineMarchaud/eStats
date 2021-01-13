@@ -44,6 +44,7 @@
 
 
                 <TableRow>
+
                     <TextView
                         android:id="@+id/currentDate"
                         android:layout_width="wrap_content"
@@ -206,6 +207,15 @@
             android:text="@string/showMap"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <NumberPicker
+            android:id="@+id/typeDisplayedPicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/recyclerviewItems" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

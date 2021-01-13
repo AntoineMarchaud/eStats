@@ -19,7 +19,8 @@ import com.xwray.groupie.viewbinding.BindableItem
 class LocationInfoItem(
     private var fragment: MainFragment,
     var locationInfo: LocationInfo,
-    var displayExpanded: Boolean
+    var displayExpanded: Boolean,
+    var typeIndexDisplayed: Int
 ) : // main location info
     BindableItem<ItemLocationBinding>(), ExpandableItem {
 
@@ -38,7 +39,14 @@ class LocationInfoItem(
             name.text = locationInfo.name
             lat.text = locationInfo.lat.toString()
             lon.text = locationInfo.lon.toString()
-            duration.text = TimeTransformation.millisecondToTimeStr(locationInfo.duration_day)
+
+            when (typeIndexDisplayed) {
+                MainFragment.Companion.DurationType.DAY.value -> duration.text = TimeTransformation.millisecondToTimeStr(locationInfo.duration_day)
+                MainFragment.Companion.DurationType.WEEK.value -> duration.text = TimeTransformation.millisecondToTimeStr(locationInfo.duration_week)
+                MainFragment.Companion.DurationType.MONTH.value -> duration.text = TimeTransformation.millisecondToTimeStr(locationInfo.duration_month)
+                MainFragment.Companion.DurationType.YEAR.value -> duration.text = TimeTransformation.millisecondToTimeStr(locationInfo.duration_year)
+                MainFragment.Companion.DurationType.ALL_TIME.value -> duration.text = TimeTransformation.millisecondToTimeStr(locationInfo.duration_all_time)
+            }
 
             itemLayout.setOnLongClickListener {
 
