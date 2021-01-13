@@ -93,12 +93,13 @@ class MainFragment : Fragment(), FragmentResultListener {
 
         with(binding) {
 
+            /*
             with(showMapFullScreen) {
                 setOnClickListener {
                     val direction = MainFragmentDirections.actionMainFragmentToMapFragment()
                     Navigation.findNavController(view).navigate(direction)
                 }
-            }
+            }*/
 
 
             with(recyclerviewItems) {

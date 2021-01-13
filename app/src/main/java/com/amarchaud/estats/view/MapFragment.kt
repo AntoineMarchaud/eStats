@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavArgs
+import androidx.navigation.fragment.navArgs
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.MapFragmentBinding
 import com.amarchaud.estats.extension.addMarker
@@ -27,11 +29,12 @@ import org.osmdroid.views.overlay.Polygon
 class MapFragment : Fragment() {
 
     companion object {
-
+        const val MODE = "Mode"
         const val MODE_NORMAL = 0
         const val MODE_MAIN = 1
         const val MODE_SUB = 2
 
+        // for classic Fragment declaration
         fun newInstance(mode: Int = MODE_NORMAL): MapFragment {
 
             val fragment = MapFragment()
@@ -48,6 +51,7 @@ class MapFragment : Fragment() {
 
     private val viewModel: MapViewModel by viewModels()
     private val numberPickerViewModel: NumberPickerViewModel by activityViewModels()
+    private val args : MapFragmentArgs by navArgs()
 
     private var myPositionCircle: Polygon? = null
     private var myPositionMarker: Marker? = null
@@ -124,7 +128,7 @@ class MapFragment : Fragment() {
                     binding.mapView.overlayManager.add(marker)
             }
 
-            when (requireArguments().getInt("mode")) {
+            when (requireArguments().getInt(MODE)) {
                 MODE_MAIN -> {
                     myPositionCircle?.points = Polygon.pointsAsCircle(
                         GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY),

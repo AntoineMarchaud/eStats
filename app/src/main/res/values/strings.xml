@@ -44,4 +44,9 @@
     <string name="foregroundTitle">eStats</string>
     <string name="foregroundContext">The app needs your local position when it is in background.</string>
     <string name="foregroundActionButton">Stop that !</string>
+    <!-- nav graph -->
+    <string name="menu_tab1_title">Home</string>
+    <string name="menu_tab1_description">This is your home</string>
+    <string name="menu_tab2_title">Map</string>
+    <string name="menu_tab2_description">This is your map</string>
 </resources>

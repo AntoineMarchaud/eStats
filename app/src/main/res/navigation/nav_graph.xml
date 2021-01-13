@@ -35,15 +35,14 @@
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.amarchaud.estats.view.MainFragment"
-        android:label="@string/mainFragmentLabel">
-        <action
-            android:id="@+id/action_mainFragment_to_mapFragment"
-            app:destination="@id/mapFragment"
-            app:enterAnim="@anim/slide_in_bottom"
-            app:exitAnim="@anim/slide_out_top" />
-    </fragment>
+        android:label="@string/mainFragmentLabel"/>
     <fragment
         android:id="@+id/mapFragment"
         android:name="com.amarchaud.estats.view.MapFragment"
-        android:label="@string/mapFragmentLabel" />
+        android:label="@string/mapFragmentLabel" >
+        <argument
+            android:name="mode"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
 </navigation>
