@@ -1,5 +1,6 @@
 package com.amarchaud.estats.view
 
+import android.animation.Animator
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -388,10 +389,41 @@ class MainFragment : Fragment(), FragmentResultListener {
         isFABOpen = true
         with(binding) {
             mainFloatingActionButton.animate().rotation(45f)
-            addMyPositionActionButton.animate()
-                .translationY(-resources.getDimension(R.dimen.floatingTranslation1))
-            addCustomPositionActionButton.animate()
-                .translationY(-resources.getDimension(R.dimen.floatingTranslation2))
+            addMyPositionActionButton.animate().translationY(-resources.getDimension(R.dimen.floatingTranslation1)).alpha(1f).setListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(p0: Animator?) {
+                    addMyPositionActionButton.visibility = View.VISIBLE
+                }
+
+                override fun onAnimationEnd(p0: Animator?) {
+
+                }
+
+                override fun onAnimationCancel(p0: Animator?) {
+
+                }
+
+                override fun onAnimationRepeat(p0: Animator?) {
+
+                }
+
+            })
+            addCustomPositionActionButton.animate().translationY(-resources.getDimension(R.dimen.floatingTranslation2)).alpha(1f).setListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(p0: Animator?) {
+                    addCustomPositionActionButton.visibility = View.VISIBLE
+                }
+
+                override fun onAnimationEnd(p0: Animator?) {
+
+                }
+
+                override fun onAnimationCancel(p0: Animator?) {
+
+                }
+
+                override fun onAnimationRepeat(p0: Animator?) {
+
+                }
+            })
         }
     }
 
@@ -399,8 +431,40 @@ class MainFragment : Fragment(), FragmentResultListener {
         isFABOpen = false
         with(binding) {
             mainFloatingActionButton.animate().rotation(-45f)
-            addMyPositionActionButton.animate().translationY(0.0f)
-            addCustomPositionActionButton.animate().translationY(0.0f)
+            addMyPositionActionButton.animate().translationY(0.0f).alpha(0f).setListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(p0: Animator?) {
+
+                }
+
+                override fun onAnimationEnd(p0: Animator?) {
+                    addMyPositionActionButton.visibility = View.GONE
+                }
+
+                override fun onAnimationCancel(p0: Animator?) {
+
+                }
+
+                override fun onAnimationRepeat(p0: Animator?) {
+
+                }
+            })
+            addCustomPositionActionButton.animate().translationY(0.0f).alpha(0f).setListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(p0: Animator?) {
+
+                }
+
+                override fun onAnimationEnd(p0: Animator?) {
+                    addCustomPositionActionButton.visibility = View.GONE
+                }
+
+                override fun onAnimationCancel(p0: Animator?) {
+
+                }
+
+                override fun onAnimationRepeat(p0: Animator?) {
+
+                }
+            })
         }
     }
 
