@@ -235,16 +235,16 @@ class PositionService : Service() {
                             Log.d(TAG, "Matching sub Location : ${locationSubInfo.name ?: "none"}")
                         }
                         matchingSubLocation = bestSubLoc
-
-                        with(sharedPref.edit()) {
-                            putLong(
-                                getString(R.string.saved_current_time_ms),
-                                System.currentTimeMillis()
-                            )
-                            apply()
-                        }
-
                     }
+
+                    with(sharedPref.edit()) {
+                        putLong(
+                            getString(R.string.saved_current_time_ms),
+                            System.currentTimeMillis()
+                        )
+                        apply()
+                    }
+
                     matchingLocation = bestLoc
                     if (bestLoc == null)
                         matchingSubLocation = null
