@@ -18,7 +18,7 @@ object GeoCoder {
         val address: MutableList<Address> = withContext(Dispatchers.IO) {
             try {
                 coder.getFromLocationName(strAddress, 1)
-            } catch (e: IOException) {
+            } catch (e: IOException) { 
                 e.printStackTrace()
                 null
             }

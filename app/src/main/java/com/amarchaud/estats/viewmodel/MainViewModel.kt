@@ -11,7 +11,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.databinding.Bindable
 import androidx.hilt.lifecycle.ViewModelInject
@@ -232,7 +231,7 @@ class MainViewModel @ViewModelInject constructor(
     /**
      * Call when user want to add a custom position
      */
-    fun onDisplayContacts(v: View) {
+    fun onDisplayContacts() {
 
         Dexter
             .withContext(app)
@@ -258,7 +257,7 @@ class MainViewModel @ViewModelInject constructor(
     /**
      * Called when user want to add his current position
      */
-    fun onAddCurrentPosition(v: View) {
+    fun onAddCurrentPosition() {
 
         if (bound) {
             mPositionService?.let {
@@ -413,7 +412,7 @@ class MainViewModel @ViewModelInject constructor(
                     )
 
                     // add to Database
-                    val i = myDao.insert(locationInfoInserted)
+                    myDao.insert(locationInfoInserted)
 
                     val ls = myDao.getLastInsertedLocationWithSubs()
                     Log.d(TAG, "Contact added ${ls.locationInfo.name} id ${ls.locationInfo.id}")
