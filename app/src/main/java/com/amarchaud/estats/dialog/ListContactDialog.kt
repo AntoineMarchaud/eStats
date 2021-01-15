@@ -15,12 +15,12 @@ import androidx.loader.content.Loader
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.amarchaud.estats.adapter.ContactItem
 import com.amarchaud.estats.databinding.DialogListContactBinding
+import com.amarchaud.estats.model.other.Contact
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import kotlinx.parcelize.Parcelize
 
-@Parcelize
-data class Contact (var name : String, var addr : String) : Parcelable
+
 
 class ListContactDialog : DialogFragment(), LoaderManager.LoaderCallbacks<Cursor> {
 

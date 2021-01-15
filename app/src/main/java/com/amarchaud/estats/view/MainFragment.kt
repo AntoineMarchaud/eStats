@@ -20,10 +20,10 @@ import com.amarchaud.estats.adapter.decoration.SwipeTouchCallback
 import com.amarchaud.estats.databinding.MainFragmentBinding
 import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
-import com.amarchaud.estats.dialog.Contact
 import com.amarchaud.estats.dialog.ListContactDialog
 import com.amarchaud.estats.extension.*
 import com.amarchaud.estats.extension.addMarker
+import com.amarchaud.estats.model.other.Contact
 import com.amarchaud.estats.utils.GeoCoder
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel

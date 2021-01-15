@@ -21,12 +21,12 @@ import com.amarchaud.estats.R
 import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.dialog.AddMainLocationDialog
-import com.amarchaud.estats.dialog.Contact
 import com.amarchaud.estats.dialog.ListContactDialog
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.entity.LocationInfoSub
 import com.amarchaud.estats.model.entity.LocationWithSubs
+import com.amarchaud.estats.model.other.Contact
 import com.amarchaud.estats.service.PositionService
 import com.amarchaud.estats.utils.GeoCoder
 import com.karumi.dexter.Dexter
