@@ -100,7 +100,7 @@ class AddMainLocationDialog : DialogFragment() {
 
             // update ViewModel
             numberPickerViewModel.pickerValueMutableLiveData.value = numberPickerDelta.positionToRadiusInMeter()
-            numberPickerDelta.setOnValueChangedListener { _, _, i2 ->
+            numberPickerDelta.setOnValueChangedListener { _, _, _ ->
                 numberPickerViewModel.pickerValueMutableLiveData.value = numberPickerDelta.positionToRadiusInMeter()
             }
 

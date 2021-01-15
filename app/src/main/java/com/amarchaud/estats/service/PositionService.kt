@@ -231,7 +231,7 @@ class PositionService : Service() {
                             location.latitude,
                             location.longitude
                         )?.also { locationSubInfo ->
-                            myDao.updateSubLocationDuration(locationSubInfo.idSub!!, inc)
+                            myDao.updateSubLocationDuration(locationSubInfo.idSub, inc)
                             Log.d(TAG, "Matching sub Location : ${locationSubInfo.name ?: "none"}")
                         }
                         matchingSubLocation = bestSubLoc

@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        navController.addOnDestinationChangedListener { controller, destination, arguments ->
+        navController.addOnDestinationChangedListener { _, destination, _ ->
             when(destination.id) {
                 R.id.splashFragment -> {
                     supportActionBar?.hide()

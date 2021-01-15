@@ -1,16 +1,9 @@
 package com.amarchaud.estats.viewmodel
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.app.Application
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
-import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavDirections
-import com.amarchaud.estats.R
 import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.view.RequestPositionFragmentDirections
@@ -25,7 +18,7 @@ class RequestPositionViewModel(val app: Application) : BaseViewModel(app) {
     val actionShowSettingsDialog: SingleLiveEvent<Boolean> = SingleLiveEvent()
     val actionLiveData: MutableLiveData<NavDirections> = MutableLiveData()
 
-    fun onAskPermission(v: View) {
+    fun onAskPermission() {
 
         val listPermissionsToAsk = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
