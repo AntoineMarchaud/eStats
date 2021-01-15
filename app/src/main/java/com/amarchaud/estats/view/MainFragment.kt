@@ -7,10 +7,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.NumberPicker
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.*
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,8 +20,11 @@ import com.amarchaud.estats.adapter.decoration.SwipeTouchCallback
 import com.amarchaud.estats.databinding.MainFragmentBinding
 import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
+import com.amarchaud.estats.dialog.Contact
+import com.amarchaud.estats.dialog.ListContactDialog
 import com.amarchaud.estats.extension.*
 import com.amarchaud.estats.extension.addMarker
+import com.amarchaud.estats.utils.GeoCoder
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import com.xwray.groupie.ExpandableGroup
@@ -31,6 +32,9 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
 
@@ -356,9 +360,14 @@ class MainFragment : Fragment(), FragmentResultListener {
         })
 
         // just display popup
-        viewModel.dialogAddMainLocation.observe(viewLifecycleOwner, {
-            val customPopup = AddMainLocationDialog.newInstance()
-            customPopup.show(requireActivity().supportFragmentManager, "add new position")
+        viewModel.displayDialog.observe(viewLifecycleOwner, {
+            if (it == AddMainLocationDialog::class.simpleName) {
+                val customPopup = AddMainLocationDialog.newInstance()
+                customPopup.show(requireActivity().supportFragmentManager, "add new position")
+            } else if (it == ListContactDialog::class.simpleName) {
+                val customPopup = ListContactDialog.newInstance()
+                customPopup.show(requireActivity().supportFragmentManager, "show contact")
+            }
         })
     }
 
@@ -369,6 +378,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
         requireActivity().supportFragmentManager.setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN, this, this)
         requireActivity().supportFragmentManager.setFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB, this, this)
+        requireActivity().supportFragmentManager.setFragmentResultListener(ListContactDialog.KEY_RESULT_CONTACT, this, this)
     }
 
     override fun onPause() {
@@ -377,6 +387,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
         requireActivity().supportFragmentManager.clearFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN)
         requireActivity().supportFragmentManager.clearFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB)
+        requireActivity().supportFragmentManager.clearFragmentResultListener(ListContactDialog.KEY_RESULT_CONTACT)
     }
 
     override fun onDestroy() {
@@ -508,6 +519,13 @@ class MainFragment : Fragment(), FragmentResultListener {
             val idMain = result.getInt(AddSubLocationDialog.KEY_PARENT_ID)
 
             viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, 7, idMain)
+        } else if (requestKey == ListContactDialog.KEY_RESULT_CONTACT) {
+
+            // get all contacts
+            val allContacts = result.getParcelableArrayList<Contact>(ListContactDialog.KEY_RESULT_LIST_CONTACT)
+            if (allContacts != null) {
+                viewModel.onAddContacts(allContacts)
+            }
         }
 
         closeFABMenu()

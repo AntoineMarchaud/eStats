@@ -4,6 +4,7 @@
     package="com.amarchaud.estats">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <!-- Network position (wifi...) (200 ft precision) -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

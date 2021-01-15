@@ -167,7 +167,7 @@
             android:clickable="true"
             android:focusable="true"
             android:visibility="gone"
-            android:onClick="@{(v) -> MainViewModel.onAddCustomPosition(v)}"
+            android:onClick="@{(v) -> MainViewModel.onDisplayContacts(v)}"
             android:src="@drawable/bonuspack_bubble"
             app:layout_constraintBottom_toBottomOf="@+id/mainFloatingActionButton"
             app:layout_constraintEnd_toEndOf="@+id/mainFloatingActionButton"

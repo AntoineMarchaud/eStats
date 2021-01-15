@@ -1,5 +1,6 @@
 package com.amarchaud.estats.viewmodel
 
+import android.Manifest
 import android.app.Application
 import android.content.ComponentName
 import android.content.Context
@@ -20,11 +21,21 @@ import com.amarchaud.estats.BR
 import com.amarchaud.estats.R
 import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.base.SingleLiveEvent
+import com.amarchaud.estats.dialog.AddMainLocationDialog
+import com.amarchaud.estats.dialog.Contact
+import com.amarchaud.estats.dialog.ListContactDialog
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.entity.LocationInfoSub
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.service.PositionService
+import com.amarchaud.estats.utils.GeoCoder
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -83,7 +94,7 @@ class MainViewModel @ViewModelInject constructor(
 
     val allLocationsWithSub: MutableLiveData<List<LocationWithSubs>> = MutableLiveData()
 
-    val dialogAddMainLocation: SingleLiveEvent<Location> = SingleLiveEvent()
+    val displayDialog: SingleLiveEvent<String?> = SingleLiveEvent()
 
     private var mHandler: Handler? = null
     private var refreshDatasRunnable: Runnable = object : Runnable {
@@ -221,8 +232,27 @@ class MainViewModel @ViewModelInject constructor(
     /**
      * Call when user want to add a custom position
      */
-    fun onAddCustomPosition(v: View) {
-        println("onAddCustomPosition")
+    fun onDisplayContacts(v: View) {
+
+        Dexter
+            .withContext(app)
+            .withPermission(Manifest.permission.READ_CONTACTS)
+            .withListener(object : PermissionListener {
+
+                override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
+                    // display fragment
+                    displayDialog.postValue(ListContactDialog::class.simpleName)
+                }
+
+                override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
+                    Toast.makeText(app, "need contact permission", Toast.LENGTH_LONG).show()
+                }
+
+                override fun onPermissionRationaleShouldBeShown(p0: PermissionRequest?, p1: PermissionToken?) {
+                    p1?.continuePermissionRequest();
+                }
+
+            }).check()
     }
 
     /**
@@ -232,10 +262,10 @@ class MainViewModel @ViewModelInject constructor(
 
         if (bound) {
             mPositionService?.let {
-                if(it.geoLoc == null) {
+                if (it.geoLoc == null) {
                     Toast.makeText(app, app.getString(R.string.activateGPS), Toast.LENGTH_LONG).show()
                 } else {
-                    dialogAddMainLocation.postValue(it.geoLoc)
+                    displayDialog.postValue(AddMainLocationDialog::class.simpleName)
                 }
             }
         }
@@ -244,8 +274,7 @@ class MainViewModel @ViewModelInject constructor(
     /**
      * Callback of pop-up
      */
-    // TODO : add delta !
-    fun onCurrentLocationDialogPositiveClick(lat: Double, lon: Double, nameChoosen: String, delta : Int, idMain: Int?) {
+    fun onCurrentLocationDialogPositiveClick(lat: Double, lon: Double, nameChoosen: String, delta: Int, idMain: Int?) {
 
         // if locationInfo is null, it is a new Location
         if (idMain == null) {
@@ -360,6 +389,38 @@ class MainViewModel @ViewModelInject constructor(
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    fun onAddContacts(allContacts: ArrayList<Contact>) {
+
+        allContacts.forEach { oneContact ->
+
+            val name = oneContact.name
+            val addr = oneContact.addr
+
+            viewModelScope.launch {
+                // convert addr to GeoLoc !
+                val geoLoc = GeoCoder.getLocationFromAddress(addr, app)
+                geoLoc?.let {
+
+
+                    val locationInfoInserted = LocationInfo(
+                        name = name,
+                        lat = it.latitude,
+                        lon = it.longitude
+                    )
+
+                    // add to Database
+                    val i = myDao.insert(locationInfoInserted)
+
+                    val ls = myDao.getLastInsertedLocationWithSubs()
+                    Log.d(TAG, "Contact added ${ls.locationInfo.name} id ${ls.locationInfo.id}")
+
+                    listOfLocationWithSubs.add(ls)
+                    oneLocationWithSub.value = (Triple(ls, TypeItem.ITEM_INSERTED, listOfLocationWithSubs.size - 1))
                 }
             }
         }
