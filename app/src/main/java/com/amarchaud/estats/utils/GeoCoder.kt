@@ -11,19 +11,37 @@ import java.io.IOException
 
 object GeoCoder {
 
-    fun getLocationFromAddress(strAddress: String?, ctx: Context): GeoPoint? {
 
-        if (strAddress == null)
-            return null
+    suspend fun getLocationFromAddressSuspend(strAddress: String?, ctx: Context): GeoPoint? {
 
         val coder = Geocoder(ctx);
-        val address: MutableList<Address>
+        val address: MutableList<Address> = withContext(Dispatchers.IO) {
+            try {
+                coder.getFromLocationName(strAddress, 1)
+            } catch (e: IOException) {
+                e.printStackTrace()
+                null
+            }
+        } ?: return null
 
+        val location = address[0]
+        location.latitude;
+        location.longitude;
+
+        return GeoPoint(location.latitude, location.longitude)
+
+    }
+
+    fun getLocationFromAddress(strAddress: String?, ctx: Context): GeoPoint? {
+
+
+        val coder = Geocoder(ctx);
+        val address: MutableList<Address>?
         try {
             address = coder.getFromLocationName(strAddress, 1)
-            if (address == null) {
-                return null;
-            }
+            if (address == null)
+                return null
+
             val location = address[0]
             location.latitude;
             location.longitude;
@@ -31,9 +49,8 @@ object GeoCoder {
             return GeoPoint(location.latitude, location.longitude)
         } catch (e: IOException) {
             e.printStackTrace()
+            return null
         }
-
-        return null
     }
 }
 

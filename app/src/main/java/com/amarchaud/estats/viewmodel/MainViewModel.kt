@@ -403,9 +403,8 @@ class MainViewModel @ViewModelInject constructor(
 
             viewModelScope.launch {
                 // convert addr to GeoLoc !
-                val geoLoc = GeoCoder.getLocationFromAddress(addr, app)
+                val geoLoc = GeoCoder.getLocationFromAddressSuspend(addr, app)
                 geoLoc?.let {
-
 
                     val locationInfoInserted = LocationInfo(
                         name = name,
