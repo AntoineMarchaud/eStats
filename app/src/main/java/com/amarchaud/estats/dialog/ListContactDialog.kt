@@ -15,12 +15,13 @@ import androidx.loader.content.Loader
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.amarchaud.estats.adapter.ContactItem
 import com.amarchaud.estats.databinding.DialogListContactBinding
+import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.other.Contact
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
-
-
+import javax.inject.Inject
 
 class ListContactDialog : DialogFragment(), LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -81,7 +82,8 @@ class ListContactDialog : DialogFragment(), LoaderManager.LoaderCallbacks<Cursor
                     val listContacts = arrayListOf<Contact>()
                     for (i in 0 until groupAdapter.itemCount) {
                         with(groupAdapter.getItem(i) as ContactItem) {
-                            listContacts.add(Contact(this.name, this.addr))
+                            if(this.isChecked)
+                                listContacts.add(Contact(this.name, this.addr))
                         }
                     }
 
