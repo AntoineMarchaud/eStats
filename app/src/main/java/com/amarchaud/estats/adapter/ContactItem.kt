@@ -8,6 +8,7 @@ import com.xwray.groupie.viewbinding.BindableItem
 class ContactItem(var name: String, var addr: String) : BindableItem<ItemContactBinding>() {
 
     var isChecked = true
+        private set
 
     override fun bind(viewBinding: ItemContactBinding, position: Int) {
         viewBinding.apply {
