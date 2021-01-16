@@ -104,30 +104,37 @@ class MapFragment : Fragment() {
             with(mapView) {
 
                 with(requireArguments()) {
-                    if (getInt(MODE) == MODE_MAIN_FIXED) {
-                        initCenterX = getDouble(LAT_FIXED)
-                        initCenterY = getDouble(LON_FIXED)
-                    } else {
-                        initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
-                        initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
+
+                    when (getInt(MODE)) {
+                        MODE_MAIN_FIXED -> {
+                            initCenterX = getDouble(LAT_FIXED)
+                            initCenterY = getDouble(LON_FIXED)
+                        }
+                        MODE_NORMAL -> {
+                            // add click listener
+                            val mReceive: MapEventsReceiver = object : MapEventsReceiver {
+                                override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
+                                    val customPopup = AddMainLocationDialog.newInstance(p.latitude, p.longitude)
+                                    customPopup.show(requireActivity().supportFragmentManager, "add new position")
+                                    return false
+                                }
+
+                                override fun longPressHelper(p: GeoPoint): Boolean {
+                                    return false
+                                }
+                            }
+                            overlayManager.add(MapEventsOverlay(mReceive))
+
+                            initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
+                            initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
+                        }
+                        else -> {
+                            initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
+                            initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
+                        }
                     }
                     initMapView(GeoPoint(initCenterX, initCenterY))
                 }
-
-                // add click listener
-                val mReceive: MapEventsReceiver = object : MapEventsReceiver {
-                    override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
-                        val customPopup = AddMainLocationDialog.newInstance(p.latitude, p.longitude)
-                        customPopup.show(requireActivity().supportFragmentManager, "add new position")
-                        return false
-                    }
-
-                    override fun longPressHelper(p: GeoPoint): Boolean {
-                        return false
-                    }
-                }
-                overlayManager.add(MapEventsOverlay(mReceive))
-
 
                 myPositionMarker = Marker(this)
                 myPositionMarker?.let { marker ->
@@ -181,7 +188,10 @@ class MapFragment : Fragment() {
         }
 
         with(requireArguments()) {
-            if (getInt(MODE) != MODE_MAIN_FIXED) {
+            val mode = getInt(MODE)
+
+            if (mode != MODE_MAIN_FIXED) {
+
                 // update current geoloc
                 viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
                     // update map
@@ -191,7 +201,7 @@ class MapFragment : Fragment() {
                             binding.mapView.overlayManager.add(marker)
                     }
 
-                    when (requireArguments().getInt(MODE)) {
+                    when (mode) {
                         MODE_MAIN -> {
                             myPositionCircle?.points = Polygon.pointsAsCircle(
                                 GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY),
