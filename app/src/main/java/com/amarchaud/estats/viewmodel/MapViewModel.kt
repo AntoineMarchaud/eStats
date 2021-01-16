@@ -32,9 +32,13 @@ class MapViewModel @ViewModelInject constructor(
     private var bound: Boolean = false
 
     init {
-        /**
-         * Add all at startup or onSavedInstance/onRestoreInstance
-         */
+        refrechAll()
+    }
+
+    /**
+     * Add all at startup or onSavedInstance/onRestoreInstance
+     */
+    fun refrechAll() {
         viewModelScope.launch {
             listOfLocationWithSubs = myDao.getAllLocationsWithSubs().toMutableList()
             allLocationsWithSub.postValue(listOfLocationWithSubs)

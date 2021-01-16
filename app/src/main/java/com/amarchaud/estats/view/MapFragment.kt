@@ -6,21 +6,24 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.navigation.NavArgs
 import androidx.navigation.fragment.navArgs
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.MapFragmentBinding
+import com.amarchaud.estats.dialog.AddMainLocationDialog
+import com.amarchaud.estats.extension.addCircle
 import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.createCircle
-import com.amarchaud.estats.extension.addCircle
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MapViewModel
 import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
 
@@ -35,6 +38,10 @@ class MapFragment : Fragment() {
         const val MODE_MAIN = 1
         const val MODE_SUB = 2
 
+        const val MODE_MAIN_FIXED = 3
+        const val LAT_FIXED = "LAT_FIXED"
+        const val LON_FIXED = "LON_FIXED"
+
         // for classic Fragment declaration
         fun newInstance(mode: Int = MODE_NORMAL): MapFragment {
 
@@ -45,6 +52,18 @@ class MapFragment : Fragment() {
             fragment.arguments = args
             return fragment
         }
+
+        fun newInstance(mode: Int = MODE_MAIN_FIXED, lat: Double, lon: Double): MapFragment {
+
+            val fragment = MapFragment()
+
+            val args = Bundle()
+            args.putInt(MODE, mode)
+            args.putDouble(LAT_FIXED, lat)
+            args.putDouble(LON_FIXED, lon)
+            fragment.arguments = args
+            return fragment
+        }
     }
 
     private var _binding: MapFragmentBinding? = null
@@ -52,7 +71,7 @@ class MapFragment : Fragment() {
 
     private val viewModel: MapViewModel by viewModels()
     private val numberPickerViewModel: NumberPickerViewModel by activityViewModels()
-    private val args : MapFragmentArgs by navArgs()
+    private val args: MapFragmentArgs by navArgs()
 
     private var myPositionCircle: Polygon? = null
     private var myPositionMarker: Marker? = null
@@ -84,9 +103,31 @@ class MapFragment : Fragment() {
 
             with(mapView) {
 
-                val initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
-                val initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
-                initMapView(GeoPoint(initCenterX, initCenterY))
+                with(requireArguments()) {
+                    if (getInt(MODE) == MODE_MAIN_FIXED) {
+                        initCenterX = getDouble(LAT_FIXED)
+                        initCenterY = getDouble(LON_FIXED)
+                    } else {
+                        initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
+                        initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
+                    }
+                    initMapView(GeoPoint(initCenterX, initCenterY))
+                }
+
+                // add click listener
+                val mReceive: MapEventsReceiver = object : MapEventsReceiver {
+                    override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
+                        val customPopup = AddMainLocationDialog.newInstance(p.latitude, p.longitude)
+                        customPopup.show(requireActivity().supportFragmentManager, "add new position")
+                        return false
+                    }
+
+                    override fun longPressHelper(p: GeoPoint): Boolean {
+                        return false
+                    }
+                }
+                overlayManager.add(MapEventsOverlay(mReceive))
+
 
                 myPositionMarker = Marker(this)
                 myPositionMarker?.let { marker ->
@@ -99,60 +140,90 @@ class MapFragment : Fragment() {
                 }
 
                 when (requireArguments().getInt(MODE)) {
+                    MODE_MAIN_FIXED -> {
+                        myPositionCircle =
+                            createCircle(
+                                GeoPoint(initCenterX, initCenterY),
+                                numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1
+                            )
+                    }
                     MODE_MAIN -> {
                         myPositionCircle =
-                            createCircle(GeoPoint(initCenterX, initCenterY), numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1)
+                            createCircle(
+                                GeoPoint(initCenterX, initCenterY),
+                                numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1
+                            )
                     }
                     MODE_SUB -> {
                         myPositionCircle =
-                            createCircle(GeoPoint(initCenterX, initCenterY), 7.toDouble(), requireContext().getColor(R.color.subLocationCircleColor), -1)
+                            createCircle(
+                                GeoPoint(initCenterX, initCenterY), 7.toDouble(), requireContext().getColor(R.color.subLocationCircleColor), -1
+                            )
                     }
                 }
             }
 
             with(centerView) {
                 setOnClickListener {
-                    viewModel.myGeoLoc.value?.apply {
-                        val geoPoint = GeoPoint(latitude, longitude)
-                        mapView.controller.animateTo(geoPoint)
+                    with(requireArguments()) {
+                        if (getInt(MODE) == MODE_MAIN_FIXED) {
+                            val geoPoint = GeoPoint(initCenterX, initCenterY)
+                            mapView.controller.animateTo(geoPoint)
+                        } else {
+                            viewModel.myGeoLoc.value?.apply {
+                                val geoPoint = GeoPoint(latitude, longitude)
+                                mapView.controller.animateTo(geoPoint)
+                            }
+                        }
                     }
                 }
             }
         }
 
-        // update current geoloc
-        viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
-            // update map
-            myPositionMarker?.let { marker ->
-                marker.position = GeoPoint(location.latitude, location.longitude)
-                if (!binding.mapView.overlayManager.contains(marker))
-                    binding.mapView.overlayManager.add(marker)
-            }
+        with(requireArguments()) {
+            if (getInt(MODE) != MODE_MAIN_FIXED) {
+                // update current geoloc
+                viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
+                    // update map
+                    myPositionMarker?.let { marker ->
+                        marker.position = GeoPoint(location.latitude, location.longitude)
+                        if (!binding.mapView.overlayManager.contains(marker))
+                            binding.mapView.overlayManager.add(marker)
+                    }
 
-            when (requireArguments().getInt(MODE)) {
-                MODE_MAIN -> {
-                    myPositionCircle?.points = Polygon.pointsAsCircle(
-                        GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY),
-                        numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 10.0
-                    )
-                    if (!binding.mapView.overlayManager.contains(myPositionCircle))
-                        binding.mapView.overlayManager.add(myPositionCircle)
-                }
-                MODE_SUB -> {
-                    myPositionCircle?.points = Polygon.pointsAsCircle(
-                        GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY), 7.toDouble()
-                    )
-                    if (!binding.mapView.overlayManager.contains(myPositionCircle))
-                        binding.mapView.overlayManager.add(myPositionCircle)
-                }
-            }
+                    when (requireArguments().getInt(MODE)) {
+                        MODE_MAIN -> {
+                            myPositionCircle?.points = Polygon.pointsAsCircle(
+                                GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY),
+                                numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 10.0
+                            )
+                            if (!binding.mapView.overlayManager.contains(myPositionCircle))
+                                binding.mapView.overlayManager.add(myPositionCircle)
+                        }
+                        MODE_SUB -> {
+                            myPositionCircle?.points = Polygon.pointsAsCircle(
+                                GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY), 7.toDouble()
+                            )
+                            if (!binding.mapView.overlayManager.contains(myPositionCircle))
+                                binding.mapView.overlayManager.add(myPositionCircle)
+                        }
+                    }
 
-            binding.mapView.invalidate()
-        })
+                    binding.mapView.invalidate()
+                })
+            }
+        }
 
         numberPickerViewModel.pickerValueMutableLiveData.observe(viewLifecycleOwner, {
             // update map
-            myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY), it.toDouble())
+            with(requireArguments()) {
+                if (getInt(MODE) == MODE_MAIN_FIXED) {
+                    myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(initCenterX, initCenterY), it.toDouble())
+                } else {
+                    myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY), it.toDouble())
+                }
+            }
+
             if (!binding.mapView.overlayManager.contains(myPositionCircle))
                 binding.mapView.overlayManager.add(myPositionCircle)
             binding.mapView.invalidate()

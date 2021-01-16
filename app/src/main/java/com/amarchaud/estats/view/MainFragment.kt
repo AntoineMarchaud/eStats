@@ -24,7 +24,6 @@ import com.amarchaud.estats.dialog.ListContactDialog
 import com.amarchaud.estats.extension.*
 import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.model.other.Contact
-import com.amarchaud.estats.utils.GeoCoder
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import com.xwray.groupie.ExpandableGroup
@@ -32,9 +31,6 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
 

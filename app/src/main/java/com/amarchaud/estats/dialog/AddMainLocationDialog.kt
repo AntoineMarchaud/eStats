@@ -23,6 +23,11 @@ import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
 class AddMainLocationDialog : DialogFragment() {
 
     companion object {
+        // in
+        const val KEY_MODE_IS_FIXED = "KEY_MODE_IS_FIXED"
+        const val KEY_LAT_FIXED = "KEY_LAT_FIXED"
+        const val KEY_LON_FIXED = "KEY_LON_FIXED"
+
         //out
         const val KEY_RESULT_MAIN = "KEY_RESULT_MAIN"
 
@@ -39,6 +44,19 @@ class AddMainLocationDialog : DialogFragment() {
             val fragment = AddMainLocationDialog()
 
             val args = Bundle()
+            args.putBoolean(KEY_MODE_IS_FIXED, false)
+            fragment.arguments = args
+            return fragment
+        }
+
+        fun newInstance(lat: Double, lon: Double): AddMainLocationDialog {
+
+            val fragment = AddMainLocationDialog()
+
+            val args = Bundle()
+            args.putBoolean(KEY_MODE_IS_FIXED, true)
+            args.putDouble(KEY_LAT_FIXED, lat)
+            args.putDouble(KEY_LON_FIXED, lon)
             fragment.arguments = args
             return fragment
         }
@@ -75,9 +93,16 @@ class AddMainLocationDialog : DialogFragment() {
 
         // add MapViewFragment
         if (savedInstanceState == null) {
-            val childFragment: Fragment = MapFragment.newInstance(MapFragment.MODE_MAIN)
-            val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
-            transaction.add(R.id.mapViewContainer, childFragment).commit()
+            with(requireArguments()) {
+
+                val childFragment: Fragment = if (getBoolean(KEY_MODE_IS_FIXED)) {
+                    MapFragment.newInstance(MapFragment.MODE_MAIN_FIXED, getDouble(KEY_LAT_FIXED), getDouble(KEY_LON_FIXED))
+                } else {
+                    MapFragment.newInstance(MapFragment.MODE_MAIN)
+                }
+                val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
+                transaction.add(R.id.mapViewContainer, childFragment).commit()
+            }
         }
 
         with(binding) {
@@ -86,8 +111,16 @@ class AddMainLocationDialog : DialogFragment() {
             numberPickerDelta.maxValue = valuesPicker.size - 1
             numberPickerDelta.displayedValues = valuesPicker.toTypedArray()
 
-            lat.text = sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)).toString()
-            lon.text = sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)).toString()
+            // 2 modes : fix or dynamic
+            with(requireArguments()) {
+                if (getBoolean(KEY_MODE_IS_FIXED)) {
+                    lat.text = getDouble(KEY_LAT_FIXED).toString()
+                    lon.text = getDouble(KEY_LON_FIXED).toString()
+                } else {
+                    lat.text = sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)).toString()
+                    lon.text = sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)).toString()
+                }
+            }
 
             if (savedInstanceState != null) {
                 savedInstanceState.getString(KEY_NAME_RETURNED)?.let {
@@ -131,13 +164,15 @@ class AddMainLocationDialog : DialogFragment() {
             }
         }
 
-
-        geoPointViewModel.geoLoc.observe(this) { currentLocation ->
-            // update dialog
-            binding.lat.text = currentLocation.latitude.toString()
-            binding.lon.text = currentLocation.longitude.toString()
+        with(requireArguments()) {
+            if (!getBoolean(KEY_MODE_IS_FIXED)) {
+                geoPointViewModel.geoLoc.observe(this@AddMainLocationDialog) { currentLocation ->
+                    // update dialog
+                    binding.lat.text = currentLocation.latitude.toString()
+                    binding.lon.text = currentLocation.longitude.toString()
+                }
+            }
         }
-
     }
 
 
