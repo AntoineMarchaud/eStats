@@ -169,7 +169,7 @@ class MainViewModel @ViewModelInject constructor(
                 }
 
             } finally {
-                mHandler?.postDelayed(this, 1000)
+                mHandler?.postDelayed(this, PositionService.UPDATE_TIME)
             }
         }
     }

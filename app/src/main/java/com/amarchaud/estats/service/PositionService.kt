@@ -37,7 +37,7 @@ class PositionService : Service() {
         const val TAG = "PositionService"
         const val CHANNEL_ID = "channelIdService"
         const val ONGOING_NOTIFICATION_ID = 1
-        const val UPDATE_TIME = 1000L // in milli
+        const val UPDATE_TIME = 3000L // in milli
         const val ACTION_CLOSE_FOREGROUND = "ACTION_CLOSE_FOREGROUND"
     }
 

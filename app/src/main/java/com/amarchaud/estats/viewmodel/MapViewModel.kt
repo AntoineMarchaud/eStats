@@ -62,7 +62,7 @@ class MapViewModel @ViewModelInject constructor(
                 }
 
             } finally {
-                mHandler?.postDelayed(this, 1000)
+                mHandler?.postDelayed(this, PositionService.UPDATE_TIME)
             }
         }
     }
@@ -111,7 +111,7 @@ class MapViewModel @ViewModelInject constructor(
         )
 
         // add to Database
-        viewModelScope.launch {
+        viewModelScope.launch { 
             val id = myDao.insert(locationInfoInserted)
             val ls = myDao.getOneLocationWithSubs(id)
             Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
