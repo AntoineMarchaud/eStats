@@ -27,7 +27,6 @@
 
 
             <TableRow>
-
                 <TextView
                     android:id="@+id/currentDate"
                     android:layout_width="wrap_content"

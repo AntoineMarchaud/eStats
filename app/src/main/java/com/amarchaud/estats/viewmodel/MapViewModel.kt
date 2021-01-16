@@ -112,9 +112,8 @@ class MapViewModel @ViewModelInject constructor(
 
         // add to Database
         viewModelScope.launch {
-            myDao.insert(locationInfoInserted)
-            Log.d(TAG, "User add new location nameChoosen $nameChoosen")
-            val ls = myDao.getLastInsertedLocationWithSubs()
+            val id = myDao.insert(locationInfoInserted)
+            val ls = myDao.getOneLocationWithSubs(id)
             Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
 
             listOfLocationWithSubs.add(ls)

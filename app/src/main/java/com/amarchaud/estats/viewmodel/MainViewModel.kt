@@ -286,9 +286,9 @@ class MainViewModel @ViewModelInject constructor(
 
             // add to Database
             viewModelScope.launch {
-                myDao.insert(locationInfoInserted)
+                val id = myDao.insert(locationInfoInserted)
 
-                val ls = myDao.getLastInsertedLocationWithSubs()
+                val ls = myDao.getOneLocationWithSubs(id)
                 Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
 
                 listOfLocationWithSubs.add(ls)
@@ -412,9 +412,8 @@ class MainViewModel @ViewModelInject constructor(
                     )
 
                     // add to Database
-                    myDao.insert(locationInfoInserted)
-
-                    val ls = myDao.getLastInsertedLocationWithSubs()
+                    val id = myDao.insert(locationInfoInserted)
+                    val ls = myDao.getOneLocationWithSubs(id)
                     Log.d(TAG, "Contact added ${ls.locationInfo.name} id ${ls.locationInfo.id}")
 
                     listOfLocationWithSubs.add(ls)

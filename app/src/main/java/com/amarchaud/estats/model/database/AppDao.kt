@@ -11,7 +11,7 @@ import com.amarchaud.estats.utils.Distance
 interface AppDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(locationInfo: LocationInfo)
+    suspend fun insert(locationInfo: LocationInfo) : Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(locationInfoSub: LocationInfoSub)
@@ -139,12 +139,8 @@ interface AppDao {
     suspend fun getAllLocationsWithSubs(): List<LocationWithSubs>
 
     @Transaction
-    @Query("SELECT * FROM Locations WHERE id=(SELECT MAX(id) FROM Locations) LIMIT 1")
-    suspend fun getLastInsertedLocationWithSubs(): LocationWithSubs
-
-    @Transaction
     @Query("SELECT * from Locations WHERE id==:id LIMIT 1")
-    suspend fun getOneLocationWithSubs(id: Int): LocationWithSubs
+    suspend fun getOneLocationWithSubs(id: Long): LocationWithSubs
 
 // Other methods
 
