@@ -11,7 +11,7 @@ import com.amarchaud.estats.utils.Distance
 interface AppDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(locationInfo: LocationInfo) : Long
+    suspend fun insert(locationInfo: LocationInfo)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(locationInfoSub: LocationInfoSub)

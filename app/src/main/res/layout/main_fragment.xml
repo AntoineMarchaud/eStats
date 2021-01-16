@@ -15,139 +15,120 @@
         android:layout_height="match_parent"
         tools:context=".view.MainFragment">
 
-
-        <LinearLayout
+        <TableLayout
             android:id="@+id/topArea"
             android:layout_width="match_parent"
             android:layout_height="150dp"
-            android:gravity="center"
-            android:orientation="horizontal"
+            android:gravity="start|center_vertical"
+            android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <org.osmdroid.views.MapView
-                android:id="@+id/mapView"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
 
-            <TableLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="start|center_vertical"
-                android:orientation="vertical"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+            <TableRow>
 
-
-                <TableRow>
-
-                    <TextView
-                        android:id="@+id/currentDate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@{MainViewModel.currentDate}" />
-                </TableRow>
-
-
-                <TableRow
+                <TextView
+                    android:id="@+id/currentDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:text="@{MainViewModel.currentDate}" />
+            </TableRow>
 
-                    <TextView
-                        android:id="@+id/currentLatitude"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/latitudeLabel" />
 
-                    <TextView
-                        android:id="@+id/currentLatitudeValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-                </TableRow>
-
-                <TableRow
+                <TextView
+                    android:id="@+id/currentLatitude"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:text="@string/latitudeLabel" />
 
-                    <TextView
-                        android:id="@+id/currentLongitude"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/longitudeLabel" />
-
-                    <TextView
-                        android:id="@+id/currentLongitudeValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-                </TableRow>
-
-                <TableRow
+                <TextView
+                    android:id="@+id/currentLatitudeValue"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content" />
 
-                    <TextView
-                        android:id="@+id/currentAltitude"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/altitudeLabel" />
+            </TableRow>
 
-                    <TextView
-                        android:id="@+id/currentAltitudeValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-
-                </TableRow>
-
-                <TableRow
+                <TextView
+                    android:id="@+id/currentLongitude"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:text="@string/longitudeLabel" />
 
-                    <TextView
-                        android:id="@+id/currentMatchingLocationName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/matchingLocationLabel" />
+                <TextView
+                    android:id="@+id/currentLongitudeValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </TableRow>
 
-                    <TextView
-                        android:id="@+id/currentArea"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@{MainViewModel.matchingLocation.name}" />
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-                </TableRow>
-
-                <TableRow
+                <TextView
+                    android:id="@+id/currentAltitude"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:text="@string/altitudeLabel" />
 
-                    <TextView
-                        android:id="@+id/currentMatchingSubLocationName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/matchingSubLocationLabel" />
-
-                    <TextView
-                        android:id="@+id/currentSubArea"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@{MainViewModel.matchingSubLocation.name}" />
-
-                </TableRow>
+                <TextView
+                    android:id="@+id/currentAltitudeValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
 
-            </TableLayout>
+            </TableRow>
 
-        </LinearLayout>
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/currentMatchingLocationName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/matchingLocationLabel" />
+
+                <TextView
+                    android:id="@+id/currentArea"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{MainViewModel.matchingLocation.name}" />
+
+            </TableRow>
+
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/currentMatchingSubLocationName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/matchingSubLocationLabel" />
+
+                <TextView
+                    android:id="@+id/currentSubArea"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{MainViewModel.matchingSubLocation.name}" />
+
+            </TableRow>
+
+
+        </TableLayout>
 
 
         <androidx.recyclerview.widget.RecyclerView
@@ -166,9 +147,9 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            android:visibility="gone"
             android:onClick="@{(v) -> MainViewModel.onDisplayContacts()}"
             android:src="@drawable/bonuspack_bubble"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/mainFloatingActionButton"
             app:layout_constraintEnd_toEndOf="@+id/mainFloatingActionButton"
             app:layout_constraintStart_toStartOf="@+id/mainFloatingActionButton"
@@ -180,9 +161,9 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            android:visibility="gone"
             android:onClick="@{(v) -> MainViewModel.onAddCurrentPosition()}"
             android:src="@drawable/zoom_in"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/mainFloatingActionButton"
             app:layout_constraintEnd_toEndOf="@+id/mainFloatingActionButton"
             app:layout_constraintStart_toStartOf="@+id/mainFloatingActionButton"

@@ -273,7 +273,7 @@ class MainViewModel @ViewModelInject constructor(
     /**
      * Callback of pop-up
      */
-    fun onCurrentLocationDialogPositiveClick(lat: Double, lon: Double, nameChoosen: String, delta: Int, idMain: Int?) {
+    fun onAddNewPosition(lat: Double, lon: Double, nameChoosen: String, delta: Int, idMain: Int?) {
 
         // if locationInfo is null, it is a new Location
         if (idMain == null) {

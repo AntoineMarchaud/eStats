@@ -17,6 +17,7 @@ import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogAddMainLocationBinding
 import com.amarchaud.estats.view.MapFragment
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
+import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
 import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
 
 
@@ -63,6 +64,9 @@ class AddMainLocationDialog : DialogFragment() {
     }
 
     private lateinit var sharedPref: SharedPreferences
+
+    //viewmodel custom
+    private val newPositionViewModel: NewPositionViewModel by activityViewModels()
     private val geoPointViewModel: GeoPointViewModel by activityViewModels()
     private val numberPickerViewModel: NumberPickerViewModel by activityViewModels()
 
@@ -96,7 +100,7 @@ class AddMainLocationDialog : DialogFragment() {
             with(requireArguments()) {
 
                 val childFragment: Fragment = if (getBoolean(KEY_MODE_IS_FIXED)) {
-                    MapFragment.newInstance(MapFragment.MODE_MAIN_FIXED, getDouble(KEY_LAT_FIXED), getDouble(KEY_LON_FIXED))
+                    MapFragment.newInstance(MapFragment.MODE_MAIN_CUSTOM_POSITION, getDouble(KEY_LAT_FIXED), getDouble(KEY_LON_FIXED))
                 } else {
                     MapFragment.newInstance(MapFragment.MODE_MAIN)
                 }
@@ -154,8 +158,17 @@ class AddMainLocationDialog : DialogFragment() {
                     putInt(KEY_DELTA_RETURNED, numberPickerDelta.positionToRadiusInMeter())
                 }
 
-                // send result to Listener(s)
+                // send result to parent Listener
                 requireActivity().supportFragmentManager.setFragmentResult(KEY_RESULT_MAIN, result)
+                // same thing by viewModel method
+                newPositionViewModel.newPositionLiveData.postValue(
+                    NewPositionViewModel.NewPosition(
+                        java.lang.Double.parseDouble(lat.text.toString()),
+                        java.lang.Double.parseDouble(lon.text.toString()),
+                        nameEditText.text.toString(),
+                        numberPickerDelta.positionToRadiusInMeter()
+                    )
+                )
 
                 dismiss()
             }

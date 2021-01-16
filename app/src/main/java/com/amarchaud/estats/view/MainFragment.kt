@@ -22,16 +22,15 @@ import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
 import com.amarchaud.estats.dialog.ListContactDialog
 import com.amarchaud.estats.extension.*
-import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.model.other.Contact
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
+import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
-import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
 
 
@@ -58,6 +57,9 @@ class MainFragment : Fragment(), FragmentResultListener {
     private val binding get() = _binding!!
 
     private val viewModel: MainViewModel by viewModels() // replace ViewModelProvider
+
+    // custom viewModel
+    private val newPositionViewModel: NewPositionViewModel by activityViewModels()
     private val geoPointViewModel: GeoPointViewModel by activityViewModels()
 
     // Marker of my position
@@ -95,13 +97,12 @@ class MainFragment : Fragment(), FragmentResultListener {
         with(binding) {
 
             /*
-            with(showMapFullScreen) {
-                setOnClickListener {
-                    val direction = MainFragmentDirections.actionMainFragmentToMapFragment()
-                    Navigation.findNavController(view).navigate(direction)
-                }
+            // add MapViewFragment
+            if (savedInstanceState == null) {
+                val childFragment: Fragment = MapFragment.newInstance(MapFragment.MODE_NORMAL)
+                val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
+                transaction.add(R.id.mapViewContainer, childFragment).commit()
             }*/
-
 
             with(recyclerviewItems) {
                 layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
@@ -132,23 +133,6 @@ class MainFragment : Fragment(), FragmentResultListener {
             }
 
 
-            with(mapView) {
-
-                val initCenterX = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lat), java.lang.Double.doubleToLongBits(0.0)))
-                val initCenterY = java.lang.Double.longBitsToDouble(sharedPref.getLong(requireContext().getString(R.string.saved_location_lon), java.lang.Double.doubleToLongBits(0.0)))
-                initMapView(GeoPoint(initCenterX, initCenterY))
-
-                myPositionMarker = Marker(this)
-                myPositionMarker?.let { marker ->
-                    val geoPoint = GeoPoint(initCenterX, initCenterY)
-                    marker.position = geoPoint
-                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-
-                    if (!overlayManager.contains(myPositionMarker))
-                        overlayManager.add(marker)
-                }
-            }
-
             with(mainFloatingActionButton) {
                 setOnClickListener {
                     if (!isFABOpen) {
@@ -170,6 +154,8 @@ class MainFragment : Fragment(), FragmentResultListener {
             binding.currentLongitudeValue.text = location.longitude.toString()
             binding.currentAltitudeValue.text = location.altitude.toString()
 
+            // TODO MAP : animation to current position
+            /*
             // update map
             val geoPoint = GeoPoint(location.latitude, location.longitude)
             binding.mapView.controller.animateTo(geoPoint)
@@ -179,9 +165,9 @@ class MainFragment : Fragment(), FragmentResultListener {
                 marker.position = geoPoint
                 if (!binding.mapView.overlays.contains(myPositionMarker))
                     binding.mapView.overlays.add(marker)
-            }
+            }*/
 
-            // send geoLoc to listeners
+            // send geoLoc to listeners (dialogs)
             geoPointViewModel.geoLoc.value = location
         })
 
@@ -198,22 +184,6 @@ class MainFragment : Fragment(), FragmentResultListener {
                     expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
                 }
                 groupAdapter.add(expandableLocationWithSub)
-
-                // add markers
-                with(locationWithSubs) {
-
-                    with(this.locationInfo) {
-                        binding.mapView.addMarker(lat, lon, name, id)
-                        binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
-                    }
-
-                    // todo add subitem marker ?
-                    with(this.subLocation) {
-                        forEach {
-
-                        }
-                    }
-                }
             }
         })
 
@@ -240,6 +210,8 @@ class MainFragment : Fragment(), FragmentResultListener {
                     }
                     groupAdapter.add(expandableLocationWithSub)
 
+                    // TODO MAP
+                    /*
                     // add markers
                     with(locationWithSubs) {
 
@@ -254,11 +226,13 @@ class MainFragment : Fragment(), FragmentResultListener {
 
                             }
                         }
-                    }
+                    }*/
                 }
                 MainViewModel.Companion.TypeItem.ITEM_DELETED -> {
                     groupAdapter.remove(groupAdapter.getTopLevelGroup(position))
 
+                    // TODO MAP
+                    /*
                     // remove markers
                     with(locationWithSubs) {
 
@@ -273,7 +247,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
                             }
                         }
-                    }
+                    }*/
                 }
 
             }
@@ -365,6 +339,14 @@ class MainFragment : Fragment(), FragmentResultListener {
                 customPopup.show(requireActivity().supportFragmentManager, "show contact")
             }
         })
+
+
+        // custom ViewModel
+        newPositionViewModel.newPositionLiveData.observe(viewLifecycleOwner, {
+            with(it) {
+                viewModel.onAddNewPosition(lat, lon, name, delta, null)
+            }
+        })
     }
 
 
@@ -372,7 +354,7 @@ class MainFragment : Fragment(), FragmentResultListener {
         super.onResume()
         viewModel.onResume()
 
-        requireActivity().supportFragmentManager.setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN, this, this)
+        //requireActivity().supportFragmentManager.setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN, this, this)
         requireActivity().supportFragmentManager.setFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB, this, this)
         requireActivity().supportFragmentManager.setFragmentResultListener(ListContactDialog.KEY_RESULT_CONTACT, this, this)
     }
@@ -381,7 +363,7 @@ class MainFragment : Fragment(), FragmentResultListener {
         super.onPause()
         viewModel.onPause()
 
-        requireActivity().supportFragmentManager.clearFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN)
+       // requireActivity().supportFragmentManager.clearFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN)
         requireActivity().supportFragmentManager.clearFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB)
         requireActivity().supportFragmentManager.clearFragmentResultListener(ListContactDialog.KEY_RESULT_CONTACT)
     }
@@ -498,6 +480,7 @@ class MainFragment : Fragment(), FragmentResultListener {
         }
     }
 
+
     override fun onFragmentResult(requestKey: String, result: Bundle) {
         if (requestKey == AddMainLocationDialog.KEY_RESULT_MAIN) {
 
@@ -505,7 +488,7 @@ class MainFragment : Fragment(), FragmentResultListener {
             val lon = result.getDouble(AddMainLocationDialog.KEY_LON_RETURNED)
             val nameChoosen = result.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
             val delta = result.getInt(AddMainLocationDialog.KEY_DELTA_RETURNED)
-            viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, delta, null)
+            viewModel.onAddNewPosition(lat, lon, nameChoosen!!, delta, null)
 
         } else if (requestKey == AddSubLocationDialog.KEY_RESULT_SUB) {
 
@@ -514,7 +497,7 @@ class MainFragment : Fragment(), FragmentResultListener {
             val nameChoosen = result.getString(AddSubLocationDialog.KEY_NAME_RETURNED)
             val idMain = result.getInt(AddSubLocationDialog.KEY_PARENT_ID)
 
-            viewModel.onCurrentLocationDialogPositiveClick(lat, lon, nameChoosen!!, 7, idMain)
+            viewModel.onAddNewPosition(lat, lon, nameChoosen!!, 7, idMain)
         } else if (requestKey == ListContactDialog.KEY_RESULT_CONTACT) {
 
             // get all contacts

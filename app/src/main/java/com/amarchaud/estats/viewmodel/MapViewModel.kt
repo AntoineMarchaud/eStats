@@ -9,13 +9,18 @@ import android.location.Location
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.util.Log
+import androidx.fragment.app.activityViewModels
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.amarchaud.estats.base.BaseViewModel
+import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.model.database.AppDao
+import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.service.PositionService
+import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
 import kotlinx.coroutines.launch
 
 class MapViewModel @ViewModelInject constructor(
@@ -23,8 +28,14 @@ class MapViewModel @ViewModelInject constructor(
     private val myDao: AppDao, // injected by hilt
 ) : BaseViewModel(app) {
 
+    companion object {
+        const val TAG = "MapViewModel"
+    }
+
     private var listOfLocationWithSubs: MutableList<LocationWithSubs> = mutableListOf()
     val allLocationsWithSub: MutableLiveData<List<LocationWithSubs>> = MutableLiveData()
+
+    val oneLocationWithSub: SingleLiveEvent<LocationWithSubs> = SingleLiveEvent()
 
     val myGeoLoc: MutableLiveData<Location> = MutableLiveData()
 
@@ -32,13 +43,6 @@ class MapViewModel @ViewModelInject constructor(
     private var bound: Boolean = false
 
     init {
-        refrechAll()
-    }
-
-    /**
-     * Add all at startup or onSavedInstance/onRestoreInstance
-     */
-    fun refrechAll() {
         viewModelScope.launch {
             listOfLocationWithSubs = myDao.getAllLocationsWithSubs().toMutableList()
             allLocationsWithSub.postValue(listOfLocationWithSubs)
@@ -95,6 +99,26 @@ class MapViewModel @ViewModelInject constructor(
         if (bound) {
             app.unbindService(mConnection)
             bound = false
+        }
+    }
+
+    fun onAddNewPosition(lat: Double, lon: Double, nameChoosen: String, delta: Int) {
+        val locationInfoInserted = LocationInfo(
+            name = nameChoosen,
+            lat = lat,
+            lon = lon,
+            delta = delta
+        )
+
+        // add to Database
+        viewModelScope.launch {
+            myDao.insert(locationInfoInserted)
+            Log.d(TAG, "User add new location nameChoosen $nameChoosen")
+            val ls = myDao.getLastInsertedLocationWithSubs()
+            Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
+
+            listOfLocationWithSubs.add(ls)
+            oneLocationWithSub.postValue(ls)
         }
     }
 }

@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentResultListener
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
@@ -19,6 +19,7 @@ import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.createCircle
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MapViewModel
+import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
 import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import org.osmdroid.events.MapEventsReceiver
@@ -34,11 +35,11 @@ class MapFragment : Fragment() {
     companion object {
         const val MODE = "Mode"
 
-        const val MODE_NORMAL = 0
-        const val MODE_MAIN = 1
-        const val MODE_SUB = 2
+        const val MODE_NORMAL = 0 // no circle
+        const val MODE_MAIN = 1 // add red circle around my position
+        const val MODE_SUB = 2 // add green circle around my position
 
-        const val MODE_MAIN_FIXED = 3
+        const val MODE_MAIN_CUSTOM_POSITION = 3 // like MODE_MAIN, but lon / lat is fixed
         const val LAT_FIXED = "LAT_FIXED"
         const val LON_FIXED = "LON_FIXED"
 
@@ -53,7 +54,7 @@ class MapFragment : Fragment() {
             return fragment
         }
 
-        fun newInstance(mode: Int = MODE_MAIN_FIXED, lat: Double, lon: Double): MapFragment {
+        fun newInstance(mode: Int = MODE_MAIN_CUSTOM_POSITION, lat: Double, lon: Double): MapFragment {
 
             val fragment = MapFragment()
 
@@ -70,8 +71,10 @@ class MapFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: MapViewModel by viewModels()
+
+    // custome viewmodel
+    private val newPositionViewModel: NewPositionViewModel by activityViewModels()
     private val numberPickerViewModel: NumberPickerViewModel by activityViewModels()
-    private val args: MapFragmentArgs by navArgs()
 
     private var myPositionCircle: Polygon? = null
     private var myPositionMarker: Marker? = null
@@ -106,7 +109,7 @@ class MapFragment : Fragment() {
                 with(requireArguments()) {
 
                     when (getInt(MODE)) {
-                        MODE_MAIN_FIXED -> {
+                        MODE_MAIN_CUSTOM_POSITION -> {
                             initCenterX = getDouble(LAT_FIXED)
                             initCenterY = getDouble(LON_FIXED)
                         }
@@ -147,7 +150,7 @@ class MapFragment : Fragment() {
                 }
 
                 when (requireArguments().getInt(MODE)) {
-                    MODE_MAIN_FIXED -> {
+                    MODE_MAIN_CUSTOM_POSITION -> {
                         myPositionCircle =
                             createCircle(
                                 GeoPoint(initCenterX, initCenterY),
@@ -173,7 +176,7 @@ class MapFragment : Fragment() {
             with(centerView) {
                 setOnClickListener {
                     with(requireArguments()) {
-                        if (getInt(MODE) == MODE_MAIN_FIXED) {
+                        if (getInt(MODE) == MODE_MAIN_CUSTOM_POSITION) {
                             val geoPoint = GeoPoint(initCenterX, initCenterY)
                             mapView.controller.animateTo(geoPoint)
                         } else {
@@ -190,7 +193,7 @@ class MapFragment : Fragment() {
         with(requireArguments()) {
             val mode = getInt(MODE)
 
-            if (mode != MODE_MAIN_FIXED) {
+            if (mode != MODE_MAIN_CUSTOM_POSITION) {
 
                 // update current geoloc
                 viewModel.myGeoLoc.observe(viewLifecycleOwner, { location ->
@@ -224,44 +227,59 @@ class MapFragment : Fragment() {
             }
         }
 
-        numberPickerViewModel.pickerValueMutableLiveData.observe(viewLifecycleOwner, {
-            // update map
-            with(requireArguments()) {
-                if (getInt(MODE) == MODE_MAIN_FIXED) {
-                    myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(initCenterX, initCenterY), it.toDouble())
-                } else {
-                    myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY), it.toDouble())
+        if (requireArguments().getInt(MODE) != MODE_NORMAL) {
+            numberPickerViewModel.pickerValueMutableLiveData.observe(viewLifecycleOwner, {
+                // update map
+                with(requireArguments()) {
+                    if (getInt(MODE) == MODE_MAIN_CUSTOM_POSITION) {
+                        myPositionCircle?.points = Polygon.pointsAsCircle(GeoPoint(initCenterX, initCenterY), it.toDouble())
+                    } else {
+                        myPositionCircle?.points =
+                            Polygon.pointsAsCircle(GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY), it.toDouble())
+                    }
                 }
-            }
 
-            if (!binding.mapView.overlayManager.contains(myPositionCircle))
-                binding.mapView.overlayManager.add(myPositionCircle)
-            binding.mapView.invalidate()
-        })
+                if (!binding.mapView.overlayManager.contains(myPositionCircle))
+                    binding.mapView.overlayManager.add(myPositionCircle)
+                binding.mapView.invalidate()
+            })
+        }
 
-        viewModel.allLocationsWithSub.observe(viewLifecycleOwner,
-            { allLocationsWithSubs ->
+        viewModel.allLocationsWithSub.observe(viewLifecycleOwner, { allLocationsWithSubs ->
 
-                allLocationsWithSubs.forEach { locationWithSubs ->
+            allLocationsWithSubs.forEach { locationWithSubs ->
 
-                    // add markers
-                    with(locationWithSubs) {
+                // add markers
+                with(locationWithSubs) {
 
-                        with(this.locationInfo) {
-                            binding.mapView.addMarker(lat, lon, name, id)
-                            binding.mapView.addCircle(GeoPoint(lat, lon), this.delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
-                        }
+                    with(this.locationInfo) {
+                        binding.mapView.addMarker(lat, lon, name, id)
+                        binding.mapView.addCircle(GeoPoint(lat, lon), this.delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
+                    }
 
-                        // todo add subitem marker ?
-                        with(this.subLocation) {
-                            forEach {
-                                binding.mapView.addCircle(GeoPoint(it.lat, it.lon), it.delta.toDouble(), requireContext().getColor(R.color.subLocationCircleColor), it.idSub)
-                            }
+                    // todo add subitem marker ?
+                    with(this.subLocation) {
+                        forEach {
+                            binding.mapView.addCircle(GeoPoint(it.lat, it.lon), it.delta.toDouble(), requireContext().getColor(R.color.subLocationCircleColor), it.idSub)
                         }
                     }
                 }
-            })
+            }
+        })
 
+        viewModel.oneLocationWithSub.observe(viewLifecycleOwner, {
+            with(it.locationInfo) {
+                binding.mapView.addMarker(lat, lon, name, id)
+                binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
+            }
+        })
+
+
+        newPositionViewModel.newPositionLiveData.observe(viewLifecycleOwner, {
+            with(it) {
+                viewModel.onAddNewPosition(lat, lon, name, delta)
+            }
+        })
     }
 
     override fun onResume() {
