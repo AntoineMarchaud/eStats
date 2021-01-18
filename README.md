@@ -1,4 +1,4 @@
-# eStat
+# eStats
 Know how much time you have spent in specific positions
 
 - Full Kotlin, no Rx, only Coroutines
