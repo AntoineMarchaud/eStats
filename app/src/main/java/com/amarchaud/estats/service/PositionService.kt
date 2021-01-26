@@ -145,7 +145,7 @@ class PositionService : Service() {
             stopForeground(true) // remove notification, but service continues to work
         }
 
-        // If we get killed, after returning from here, restart
+        // If we get killed, service is over
         return START_NOT_STICKY
     }
 
