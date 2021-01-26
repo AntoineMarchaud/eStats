@@ -42,6 +42,9 @@ class MainActivity : AppCompatActivity() {
                     supportActionBar?.hide()
                     binding.bottomNav.visibility = View.GONE
                 }
+                R.id.requestPositionFragment -> {
+                    binding.bottomNav.visibility = View.GONE
+                }
                 R.id.mapFragment -> {
                     val argument = NavArgument.Builder().setDefaultValue(MODE_NORMAL).build()
                     destination.addArgument("Mode", argument)
