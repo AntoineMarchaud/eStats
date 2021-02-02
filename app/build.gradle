@@ -64,7 +64,7 @@ dependencies {
     // Feature module Support
     implementation "androidx.navigation:navigation-dynamic-features-fragment:$nav_version"
     // Jetpack Compose Integration
-    implementation "androidx.navigation:navigation-compose:1.0.0-alpha05"
+    implementation "androidx.navigation:navigation-compose:1.0.0-alpha06"
 
     // Room
     implementation "androidx.room:room-runtime:$room_version"
@@ -76,10 +76,10 @@ dependencies {
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
     // Inject ViewModel objects with Hilt (@ViewModelInject)
-    implementation 'androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha02'
+    implementation 'androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03'
     // Inject Worker objects with Hilt (@WorkerInject)
-    implementation 'androidx.hilt:hilt-work:1.0.0-alpha02'
-    kapt 'androidx.hilt:hilt-compiler:1.0.0-alpha02'
+    implementation 'androidx.hilt:hilt-work:1.0.0-alpha03'
+    kapt 'androidx.hilt:hilt-compiler:1.0.0-alpha03'
 
     // dexter (permission)
     implementation 'com.karumi:dexter:6.2.2'

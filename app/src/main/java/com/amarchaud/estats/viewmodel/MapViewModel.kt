@@ -21,9 +21,12 @@ import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.service.PositionService
 import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MapViewModel @ViewModelInject constructor(
+@HiltViewModel
+class MapViewModel @Inject constructor(
     val app: Application,
     private val myDao: AppDao, // injected by hilt
 ) : BaseViewModel(app) {

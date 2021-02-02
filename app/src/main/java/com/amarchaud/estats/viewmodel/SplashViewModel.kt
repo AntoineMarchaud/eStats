@@ -8,10 +8,13 @@ import androidx.navigation.NavDirections
 import com.amarchaud.estats.R
 import com.amarchaud.estats.base.BaseViewModel
 import com.amarchaud.estats.view.SplashFragmentDirections
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SplashViewModel(app: Application) : BaseViewModel(app) {
+@HiltViewModel
+class SplashViewModel @Inject constructor(app: Application) : BaseViewModel(app) {
 
     private val sharedPref =
         app.getSharedPreferences(app.getString(R.string.globalPref), Context.MODE_PRIVATE)

@@ -11,9 +11,11 @@ import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-
-class RequestPositionViewModel(val app: Application) : BaseViewModel(app) {
+@HiltViewModel
+class RequestPositionViewModel @Inject constructor(val app: Application) : BaseViewModel(app) {
 
     val actionShowSettingsDialog: SingleLiveEvent<Boolean> = SingleLiveEvent()
     val actionLiveData: MutableLiveData<NavDirections> = MutableLiveData()

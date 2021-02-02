@@ -2,17 +2,19 @@ package com.amarchaud.estats.service
 
 import android.content.Context
 import android.util.Log
-import androidx.hilt.Assisted
-import androidx.hilt.work.WorkerInject
+import androidx.hilt.work.HiltWorker
 import androidx.work.*
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.utils.TimeTransformation
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class ResetDurationWorker @WorkerInject constructor(
+@HiltWorker
+class ResetDurationWorker @AssistedInject constructor(
     @Assisted val appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private var myDao: AppDao
