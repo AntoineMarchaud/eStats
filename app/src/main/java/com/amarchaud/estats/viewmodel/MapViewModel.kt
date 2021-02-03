@@ -10,8 +10,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import androidx.fragment.app.activityViewModels
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.amarchaud.estats.base.BaseViewModel
@@ -20,7 +18,6 @@ import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.service.PositionService
-import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject

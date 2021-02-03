@@ -1,14 +1,12 @@
 package com.amarchaud.estats.injection
 
 import android.content.Context
-import androidx.room.Database
 import androidx.room.Room
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.database.AppDb
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton

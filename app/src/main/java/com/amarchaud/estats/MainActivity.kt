@@ -34,8 +34,6 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.my_first_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-
-
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when(destination.id) {
                 R.id.splashFragment -> {
