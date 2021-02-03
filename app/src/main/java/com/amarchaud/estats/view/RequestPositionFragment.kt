@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
 import com.amarchaud.estats.R
 import com.amarchaud.estats.application.eStatsApplication
@@ -20,7 +21,7 @@ import com.amarchaud.estats.viewmodel.RequestPositionViewModel
 class RequestPositionFragment : Fragment() {
 
     private lateinit var binding: RequestPositionFragmentBinding
-    private lateinit var viewModel: RequestPositionViewModel
+    private val viewModel: RequestPositionViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,7 +34,6 @@ class RequestPositionFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this).get(RequestPositionViewModel::class.java)
         binding.requestPositionViewModel = viewModel
 
         viewModel.actionLiveData.observe(viewLifecycleOwner, {
