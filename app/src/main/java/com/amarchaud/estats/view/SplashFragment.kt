@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation
 import com.amarchaud.estats.R
@@ -18,7 +19,7 @@ class SplashFragment : Fragment() {
     private var _binding: SplashFragmentBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var viewModel: SplashViewModel
+    private val viewModel: SplashViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,7 +32,6 @@ class SplashFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this).get(SplashViewModel::class.java)
 
         viewModel.actionLiveData.observe(viewLifecycleOwner, {
             Navigation.findNavController(view).navigate(it)
