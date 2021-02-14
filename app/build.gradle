@@ -64,14 +64,11 @@ dependencies {
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
     // Feature module Support
     implementation "androidx.navigation:navigation-dynamic-features-fragment:$nav_version"
-    // Jetpack Compose Integration
-    implementation "androidx.navigation:navigation-compose:1.0.0-alpha07"
 
     // Room
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
-    implementation "androidx.room:room-rxjava3:$room_version"
 
     // Hilt
     implementation "com.google.dagger:hilt-android:$hilt_version"
