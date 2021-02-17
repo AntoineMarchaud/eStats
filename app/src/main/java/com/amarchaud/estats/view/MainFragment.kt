@@ -62,8 +62,6 @@ class MainFragment : Fragment(), FragmentResultListener {
     private val newPositionViewModel: NewPositionViewModel by activityViewModels()
     private val geoPointViewModel: GeoPointViewModel by activityViewModels()
 
-    // Marker of my position
-    private var myPositionMarker: Marker? = null
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     private lateinit var sharedPref: SharedPreferences
@@ -95,14 +93,6 @@ class MainFragment : Fragment(), FragmentResultListener {
         binding.lifecycleOwner = this
 
         with(binding) {
-
-            /*
-            // add MapViewFragment
-            if (savedInstanceState == null) {
-                val childFragment: Fragment = MapFragment.newInstance(MapFragment.MODE_NORMAL)
-                val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
-                transaction.add(R.id.mapViewContainer, childFragment).commit()
-            }*/
 
             with(recyclerviewItems) {
                 layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
@@ -154,19 +144,6 @@ class MainFragment : Fragment(), FragmentResultListener {
             binding.currentLongitudeValue.text = location.longitude.toString()
             binding.currentAltitudeValue.text = location.altitude.toString()
 
-            // TODO MAP : animation to current position
-            /*
-            // update map
-            val geoPoint = GeoPoint(location.latitude, location.longitude)
-            binding.mapView.controller.animateTo(geoPoint)
-
-            // update marker
-            myPositionMarker?.let { marker ->
-                marker.position = geoPoint
-                if (!binding.mapView.overlays.contains(myPositionMarker))
-                    binding.mapView.overlays.add(marker)
-            }*/
-
             // send geoLoc to listeners (dialogs)
             geoPointViewModel.geoLoc.value = location
         })
@@ -209,45 +186,9 @@ class MainFragment : Fragment(), FragmentResultListener {
                         expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
                     }
                     groupAdapter.add(expandableLocationWithSub)
-
-                    // TODO MAP
-                    /*
-                    // add markers
-                    with(locationWithSubs) {
-
-                        with(this.locationInfo) {
-                            binding.mapView.addMarker(lat, lon, name, id)
-                            binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
-                        }
-
-                        // todo add subitem marker ?
-                        with(this.subLocation) {
-                            forEach {
-
-                            }
-                        }
-                    }*/
                 }
                 MainViewModel.Companion.TypeItem.ITEM_DELETED -> {
                     groupAdapter.remove(groupAdapter.getTopLevelGroup(position))
-
-                    // TODO MAP
-                    /*
-                    // remove markers
-                    with(locationWithSubs) {
-
-                        with(this.locationInfo) {
-                            binding.mapView.removeMarker(id)
-                            binding.mapView.removeCirle(id)
-                        }
-
-                        // todo remove subitem marker ?
-                        with(this.subLocation) {
-                            forEach {
-
-                            }
-                        }
-                    }*/
                 }
 
             }
