@@ -10,8 +10,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import com.amarchaud.estats.R
+import com.amarchaud.estats.adapter.LocationInfoItem
+import com.amarchaud.estats.adapter.LocationInfoSubItem
 import com.amarchaud.estats.databinding.MapFragmentBinding
 import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.extension.addCircle
@@ -21,7 +24,10 @@ import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MapViewModel
 import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
 import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
+import com.xwray.groupie.ExpandableGroup
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.MapEventsOverlay
@@ -30,7 +36,7 @@ import org.osmdroid.views.overlay.Polygon
 
 
 @AndroidEntryPoint
-class MapFragment : Fragment() {
+class MapFragment : Fragment(), FragmentResultListener {
 
     companion object {
         const val MODE = "Mode"
@@ -267,17 +273,16 @@ class MapFragment : Fragment() {
             }
         })
 
-        viewModel.oneLocationWithSub.observe(viewLifecycleOwner, {
-            with(it.locationInfo) {
-                binding.mapView.addMarker(lat, lon, name, id)
-                binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
-            }
-        })
 
 
         newPositionViewModel.newPositionLiveData.observe(viewLifecycleOwner, {
             with(it) {
-                viewModel.onAddNewPosition(lat, lon, name, delta)
+                lifecycleScope.launch {
+                    viewModel.onAddNewPosition(lat, lon, name, delta).collect {
+                        binding.mapView.addMarker(lat, lon, name, id)
+                        binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
+                    }
+                }
             }
         })
     }
@@ -285,15 +290,42 @@ class MapFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
+
+        /*
+        if(requireArguments().getInt(MODE) == MODE_NORMAL)
+            requireActivity().supportFragmentManager.setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN, this, this)*/
     }
 
     override fun onPause() {
         super.onPause()
         viewModel.onPause()
+
+        /*
+        if(requireArguments().getInt(MODE) == MODE_NORMAL)
+            requireActivity().supportFragmentManager.clearFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN)*/
     }
 
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+    }
+
+
+    override fun onFragmentResult(requestKey: String, result: Bundle) {
+        /*
+        if (requestKey == AddMainLocationDialog.KEY_RESULT_MAIN) {
+            val lat = result.getDouble(AddMainLocationDialog.KEY_LAT_RETURNED)
+            val lon = result.getDouble(AddMainLocationDialog.KEY_LON_RETURNED)
+            val nameChoosen = result.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
+            val delta = result.getInt(AddMainLocationDialog.KEY_DELTA_RETURNED)
+
+            lifecycleScope.launch {
+                // add in DB
+                viewModel.onAddNewPosition(lat, lon, nameChoosen!!, delta).collect {
+                    binding.mapView.addMarker(lat, lon, nameChoosen, id)
+                    binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
+                }
+            }
+        }*/
     }
 }

@@ -49,8 +49,9 @@ class PositionService : Service() {
 
     private lateinit var sharedPref: SharedPreferences
 
-    private lateinit var mLocationRequest: LocationRequest
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
+
+    private var mLocationRequest: LocationRequest = LocationRequest.create()
 
     // ***************** Values for Clients ******************************* //
     var geoLoc: android.location.Location? = null
@@ -85,6 +86,12 @@ class PositionService : Service() {
     }
     // End
 
+    init {
+        mLocationRequest.interval = UPDATE_TIME
+        mLocationRequest.fastestInterval = UPDATE_TIME
+        mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    }
+
 
     /**
      * Manage Service itself
@@ -99,21 +106,9 @@ class PositionService : Service() {
             Context.MODE_PRIVATE
         )
 
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         ) {
-
-            mLocationRequest = LocationRequest()
-            mLocationRequest.interval = UPDATE_TIME
-            mLocationRequest.fastestInterval = UPDATE_TIME
-            mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-
-
             mFusedLocationClient.requestLocationUpdates(
                 mLocationRequest,
                 mLocationCallback,

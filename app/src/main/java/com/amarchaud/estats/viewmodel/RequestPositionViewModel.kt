@@ -2,10 +2,10 @@ package com.amarchaud.estats.viewmodel
 
 import android.Manifest
 import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavDirections
-import com.amarchaud.estats.base.BaseViewModel
-import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.view.RequestPositionFragmentDirections
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
@@ -15,10 +15,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class RequestPositionViewModel @Inject constructor(val app: Application) : BaseViewModel(app) {
+class RequestPositionViewModel @Inject constructor(val app: Application) : AndroidViewModel(app) {
 
-    val actionShowSettingsDialog: SingleLiveEvent<Boolean> = SingleLiveEvent()
-    val actionLiveData: MutableLiveData<NavDirections> = MutableLiveData()
+    private var _actionShowSettingsDialog = MutableLiveData<Boolean>()
+    val actionShowSettingsDialog: LiveData<Boolean>
+        get() = _actionShowSettingsDialog
+
+    private var _actionLiveData = MutableLiveData<NavDirections>()
+    val actionLiveData: LiveData<NavDirections>
+        get() = _actionLiveData
+
 
     fun onAskPermission() {
 
@@ -37,11 +43,11 @@ class RequestPositionViewModel @Inject constructor(val app: Application) : BaseV
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
 
                     if (report.areAllPermissionsGranted()) {
-                        actionLiveData.postValue(RequestPositionFragmentDirections.actionRequestPositionFragmentToMainFragment())
+                        _actionLiveData.postValue(RequestPositionFragmentDirections.actionRequestPositionFragmentToMainFragment())
                     }
 
                     if (report.isAnyPermissionPermanentlyDenied) {
-                        actionShowSettingsDialog.postValue(true)
+                        _actionShowSettingsDialog.postValue(true)
                     }
                 }
 

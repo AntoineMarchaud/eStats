@@ -1,10 +1,17 @@
 package com.amarchaud.estats.viewmodel.data
 
 import android.location.Location
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.amarchaud.estats.base.SingleLiveEvent
 
 class GeoPointViewModel : ViewModel() {
-    val geoLoc = MutableLiveData<Location>()
+
+    private val _geoLoc = MutableLiveData<Location>()
+    val geoLoc: LiveData<Location>
+        get() = _geoLoc
+
+    fun setGeloc(location: Location) {
+        _geoLoc.value = location
+    }
 }

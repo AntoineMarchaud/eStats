@@ -1,5 +1,6 @@
 package com.amarchaud.estats.view
 
+import android.Manifest
 import android.animation.Animator
 import android.content.Context
 import android.content.SharedPreferences
@@ -7,8 +8,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.*
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,15 +25,27 @@ import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
 import com.amarchaud.estats.dialog.ListContactDialog
 import com.amarchaud.estats.extension.*
+import com.amarchaud.estats.model.entity.LocationInfo
+import com.amarchaud.estats.model.entity.LocationInfoSub
+import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.model.other.Contact
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
 import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.osmdroid.views.overlay.Marker
 
 
@@ -94,6 +109,19 @@ class MainFragment : Fragment(), FragmentResultListener {
 
         with(binding) {
 
+            addCustomPositionActionButton.setOnClickListener {
+                requestContacts()
+            }
+
+            addMyPositionActionButton.setOnClickListener {
+                if (viewModel.mPositionService?.geoLoc == null) {
+                    Toast.makeText(requireContext(), getString(R.string.activateGPS), Toast.LENGTH_LONG).show()
+                } else {
+                    val customPopup = AddMainLocationDialog.newInstance()
+                    customPopup.show(requireActivity().supportFragmentManager, "add new position")
+                }
+            }
+
             with(recyclerviewItems) {
                 layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
                 adapter = groupAdapter
@@ -145,7 +173,7 @@ class MainFragment : Fragment(), FragmentResultListener {
             binding.currentAltitudeValue.text = location.altitude.toString()
 
             // send geoLoc to listeners (dialogs)
-            geoPointViewModel.geoLoc.value = location
+            geoPointViewModel.setGeloc(location)
         })
 
 
@@ -165,127 +193,63 @@ class MainFragment : Fragment(), FragmentResultListener {
         })
 
 
-        // at startup
-        viewModel.oneLocationWithSub.observe(viewLifecycleOwner, { oneLocationWithSubs ->
-
-            // first = LocationWithSubs
-            // second = type
-            // third = position
-            val locationWithSubs = oneLocationWithSubs.first
-            val type = oneLocationWithSubs.second
-            val position = oneLocationWithSubs.third
-
-            // update groupieView
-            when (type) {
-
-                MainViewModel.Companion.TypeItem.ITEM_INSERTED -> {
-
-                    val header = LocationInfoItem(this@MainFragment, locationWithSubs.locationInfo, locationWithSubs.subLocation.size > 0, pickerValueIndexStored)
-                    val expandableLocationWithSub = ExpandableGroup(header)
-                    locationWithSubs.subLocation.forEach {
-                        expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
-                    }
-                    groupAdapter.add(expandableLocationWithSub)
-                }
-                MainViewModel.Companion.TypeItem.ITEM_DELETED -> {
-                    groupAdapter.remove(groupAdapter.getTopLevelGroup(position))
-                }
-
-            }
-        })
-
         /**
          * Only modify
          */
-        viewModel.oneLocation.observe(viewLifecycleOwner, { oneLocation ->
+        viewModel.oneLocationToModify.observe(viewLifecycleOwner, { oneLocation ->
 
-            // first = LocationInfo
-            // second = type
-            // third = position
             val locationInfo = oneLocation.first
-            val type = oneLocation.second
-            val position = oneLocation.third
+            val position = oneLocation.second
 
             // update groupieView
-            when (type) {
-                MainViewModel.Companion.TypeHeaderItem.ITEM_MODIFIED -> {
-                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(position) as ExpandableGroup
-                    // expandableLocationWithSub.getGroup(0) = header
-                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
-                        this.locationInfo = locationInfo
-                        this.typeIndexDisplayed = pickerValueIndexStored
-                        //notifyChanged() // no use for parent, only for children
-                    }
-                    expandableLocationWithSub.notifyItemChanged(0)
-                }
+            val expandableLocationWithSub = groupAdapter.getTopLevelGroup(position) as ExpandableGroup
+            // expandableLocationWithSub.getGroup(0) = header
+            (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
+                this.locationInfo = locationInfo
+                this.typeIndexDisplayed = pickerValueIndexStored
+                //notifyChanged() // no use for parent, only for children
             }
+            expandableLocationWithSub.notifyItemChanged(0)
         })
 
-        viewModel.oneSubLocation.observe(viewLifecycleOwner, { oneSubLocation ->
-            // first = LocationSub
-            // second = type
-            // third = Pair(Index of main, index of sub)
+        viewModel.oneSubLocationToModify.observe(viewLifecycleOwner, { oneSubLocation ->
+
             val locationInfoSub = oneSubLocation.first
-            val type = oneSubLocation.second
-            val indexMain = oneSubLocation.third.first
-            val indexSub = oneSubLocation.third.second
+            val indexMain = oneSubLocation.second
+            val indexSub = oneSubLocation.third
 
             // update groupieView
-            when (type) {
-                MainViewModel.Companion.TypeSubItem.ITEM_INSERTED -> {
-                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
-                    expandableLocationWithSub.add(LocationInfoSubItem(locationInfoSub, pickerValueIndexStored))
-
-                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
-                        this.displayExpanded = true
-                    }
-                    expandableLocationWithSub.notifyItemChanged(0)
-
-                    // todo add subitem marker ?
-                }
-                MainViewModel.Companion.TypeSubItem.ITEM_MODIFIED -> {
-                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
-                    // expandableLocationWithSub.getGroup(0) = header
-                    (expandableLocationWithSub.getGroup(1 + indexSub) as LocationInfoSubItem).apply {
-                        this.locationInfoSubParam = locationInfoSub
-                        this.typeIndexDisplayed = pickerValueIndexStored
-                        notifyChanged()
-                    }
-                }
-                MainViewModel.Companion.TypeSubItem.ITEM_DELETED -> {
-                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
-
-                    val groupToRemove = expandableLocationWithSub.getGroup(1 + indexSub) as LocationInfoSubItem
-                    // expandableLocationWithSub.getGroup(0) = header
-                    expandableLocationWithSub.remove(groupToRemove)
-
-                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
-                        this.displayExpanded = expandableLocationWithSub.childCount > 0
-                        expandableLocationWithSub.isExpanded = expandableLocationWithSub.childCount > 0
-                    }
-                    expandableLocationWithSub.notifyItemChanged(0)
-
-                    // todo remove subitem marker ?
-                }
-            }
-        })
-
-        // just display popup
-        viewModel.displayDialog.observe(viewLifecycleOwner, {
-            if (it == AddMainLocationDialog::class.simpleName) {
-                val customPopup = AddMainLocationDialog.newInstance()
-                customPopup.show(requireActivity().supportFragmentManager, "add new position")
-            } else if (it == ListContactDialog::class.simpleName) {
-                val customPopup = ListContactDialog.newInstance()
-                customPopup.show(requireActivity().supportFragmentManager, "show contact")
+            val expandableLocationWithSub = groupAdapter.getTopLevelGroup(indexMain) as ExpandableGroup
+            // expandableLocationWithSub.getGroup(0) = header
+            (expandableLocationWithSub.getGroup(1 + indexSub) as LocationInfoSubItem).apply {
+                this.locationInfoSubParam = locationInfoSub
+                this.typeIndexDisplayed = pickerValueIndexStored
+                notifyChanged()
             }
         })
 
 
-        // custom ViewModel
+        // custom ViewModel when adding from DialogFragment !
         newPositionViewModel.newPositionLiveData.observe(viewLifecycleOwner, {
             with(it) {
-                viewModel.onAddNewPosition(lat, lon, name, delta, null)
+                lifecycleScope.launch {
+
+                    viewModel.onAddNewPosition(lat, lon, name, delta).collect { oneLocationWithSub ->
+                        with(oneLocationWithSub) {
+                            val header = LocationInfoItem(
+                                this@MainFragment,
+                                locationInfo,
+                                subLocation.size > 0, pickerValueIndexStored
+                            )
+                            val expandableLocationWithSub = ExpandableGroup(header)
+                            subLocation.forEach {
+                                expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
+                            }
+                            groupAdapter.add(expandableLocationWithSub)
+                        }
+                    }
+                }
+
             }
         })
     }
@@ -304,7 +268,7 @@ class MainFragment : Fragment(), FragmentResultListener {
         super.onPause()
         viewModel.onPause()
 
-       // requireActivity().supportFragmentManager.clearFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN)
+        //requireActivity().supportFragmentManager.clearFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN)
         requireActivity().supportFragmentManager.clearFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB)
         requireActivity().supportFragmentManager.clearFragmentResultListener(ListContactDialog.KEY_RESULT_CONTACT)
     }
@@ -412,9 +376,40 @@ class MainFragment : Fragment(), FragmentResultListener {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
 
                 if (direction == ItemTouchHelper.LEFT) {
+
                     when (val item = groupAdapter.getItem(viewHolder.adapterPosition)) {
-                        is LocationInfoItem -> viewModel.deleteItem(item.locationInfo)
-                        is LocationInfoSubItem -> viewModel.deleteSubItem(item.locationInfoSubParam)
+
+                        is LocationInfoItem -> {
+                            lifecycleScope.launch {
+
+                                //delete db
+                                viewModel.deleteItem(item.locationInfo)
+
+                                //delete ui
+                                groupAdapter.remove(groupAdapter.getTopLevelGroup(viewHolder.adapterPosition))
+                            }
+                        }
+                        is LocationInfoSubItem -> {
+
+                            // delete db
+                            lifecycleScope.launch {
+
+                                viewModel.deleteSubItem(item.locationInfoSubParam).collect {
+                                    val mainPos = it.first
+                                    val subPos = it.second
+
+                                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(mainPos) as ExpandableGroup
+                                    val groupToRemove = expandableLocationWithSub.getGroup(1 + subPos) as LocationInfoSubItem
+                                    expandableLocationWithSub.remove(groupToRemove)
+
+                                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
+                                        this.displayExpanded = expandableLocationWithSub.childCount > 0
+                                        expandableLocationWithSub.isExpanded = expandableLocationWithSub.childCount > 0
+                                    }
+                                    expandableLocationWithSub.notifyItemChanged(0)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -429,7 +424,25 @@ class MainFragment : Fragment(), FragmentResultListener {
             val lon = result.getDouble(AddMainLocationDialog.KEY_LON_RETURNED)
             val nameChoosen = result.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
             val delta = result.getInt(AddMainLocationDialog.KEY_DELTA_RETURNED)
-            viewModel.onAddNewPosition(lat, lon, nameChoosen!!, delta, null)
+
+            lifecycleScope.launch {
+
+                // add in DB
+                viewModel.onAddNewPosition(lat, lon, nameChoosen!!, delta).collect { oneLocationWithSub ->
+                    with(oneLocationWithSub) {
+                        val header = LocationInfoItem(
+                            this@MainFragment,
+                            locationInfo,
+                            subLocation.size > 0, pickerValueIndexStored
+                        )
+                        val expandableLocationWithSub = ExpandableGroup(header)
+                        subLocation.forEach {
+                            expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
+                        }
+                        groupAdapter.add(expandableLocationWithSub)
+                    }
+                }
+            }
 
         } else if (requestKey == AddSubLocationDialog.KEY_RESULT_SUB) {
 
@@ -438,16 +451,74 @@ class MainFragment : Fragment(), FragmentResultListener {
             val nameChoosen = result.getString(AddSubLocationDialog.KEY_NAME_RETURNED)
             val idMain = result.getInt(AddSubLocationDialog.KEY_PARENT_ID)
 
-            viewModel.onAddNewPosition(lat, lon, nameChoosen!!, 7, idMain)
+            lifecycleScope.launch {
+                // add in DB
+                viewModel.onAddNewPositionSub(lat, lon, nameChoosen!!, 7, idMain).collect { oneSub ->
+
+                    val sub = oneSub.first
+                    val posMain = oneSub.second
+
+                    // then add visually !
+                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(posMain) as ExpandableGroup
+                    expandableLocationWithSub.add(LocationInfoSubItem(sub, pickerValueIndexStored))
+
+                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
+                        this.displayExpanded = true
+                    }
+                    expandableLocationWithSub.notifyItemChanged(0)
+
+                }
+            }
+
         } else if (requestKey == ListContactDialog.KEY_RESULT_CONTACT) {
 
             // get all contacts
             val allContacts = result.getParcelableArrayList<Contact>(ListContactDialog.KEY_RESULT_LIST_CONTACT)
             if (allContacts != null) {
-                viewModel.onAddContacts(allContacts)
+
+                lifecycleScope.launch {
+                    viewModel.onAddContacts(allContacts).collect {
+                        // add each person !
+                        val header = LocationInfoItem(
+                            this@MainFragment,
+                            it.locationInfo,
+                            it.subLocation.size > 0,
+                            pickerValueIndexStored
+                        )
+                        val expandableLocationWithSub = ExpandableGroup(header)
+                        it.subLocation.forEach {
+                            expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
+                        }
+                        groupAdapter.add(expandableLocationWithSub)
+                    }
+                }
+
             }
         }
 
         closeFABMenu()
+    }
+
+    private fun requestContacts() {
+
+        Dexter
+            .withContext(requireContext())
+            .withPermission(Manifest.permission.READ_CONTACTS)
+            .withListener(object : PermissionListener {
+
+                override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
+                    val customPopup = ListContactDialog.newInstance()
+                    customPopup.show(requireActivity().supportFragmentManager, "show contact")
+                }
+
+                override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
+                    Toast.makeText(requireContext(), "need contact permission", Toast.LENGTH_LONG).show()
+                }
+
+                override fun onPermissionRationaleShouldBeShown(p0: PermissionRequest?, p1: PermissionToken?) {
+                    p1?.continuePermissionRequest()
+                }
+
+            }).check()
     }
 }

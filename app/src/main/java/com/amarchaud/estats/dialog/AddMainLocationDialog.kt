@@ -136,9 +136,9 @@ class AddMainLocationDialog : DialogFragment() {
             }
 
             // update ViewModel
-            numberPickerViewModel.pickerValueMutableLiveData.value = numberPickerDelta.positionToRadiusInMeter()
+            numberPickerViewModel.setPickerValue(numberPickerDelta.positionToRadiusInMeter())
             numberPickerDelta.setOnValueChangedListener { _, _, _ ->
-                numberPickerViewModel.pickerValueMutableLiveData.value = numberPickerDelta.positionToRadiusInMeter()
+                numberPickerViewModel.setPickerValue(numberPickerDelta.positionToRadiusInMeter())
             }
 
             dialogTitle.text = requireContext().getString(R.string.addNewPositionTitle)
@@ -160,8 +160,9 @@ class AddMainLocationDialog : DialogFragment() {
 
                 // send result to parent Listener
                 requireActivity().supportFragmentManager.setFragmentResult(KEY_RESULT_MAIN, result)
+
                 // same thing by viewModel method
-                newPositionViewModel.newPositionLiveData.postValue(
+                newPositionViewModel.setNewPosition(
                     NewPositionViewModel.NewPosition(
                         java.lang.Double.parseDouble(lat.text.toString()),
                         java.lang.Double.parseDouble(lon.text.toString()),

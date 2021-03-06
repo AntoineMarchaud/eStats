@@ -10,15 +10,16 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.amarchaud.estats.base.BaseViewModel
-import com.amarchaud.estats.base.SingleLiveEvent
 import com.amarchaud.estats.model.database.AppDao
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.service.PositionService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,26 +27,27 @@ import javax.inject.Inject
 class MapViewModel @Inject constructor(
     val app: Application,
     private val myDao: AppDao, // injected by hilt
-) : BaseViewModel(app) {
+) : AndroidViewModel(app) {
 
     companion object {
         const val TAG = "MapViewModel"
     }
 
-    private var listOfLocationWithSubs: MutableList<LocationWithSubs> = mutableListOf()
-    val allLocationsWithSub: MutableLiveData<List<LocationWithSubs>> = MutableLiveData()
+    private var _allLocationsWithSub = MutableLiveData<MutableList<LocationWithSubs>>()
+    val allLocationsWithSub: LiveData<MutableList<LocationWithSubs>>
+        get() = _allLocationsWithSub
 
-    val oneLocationWithSub: SingleLiveEvent<LocationWithSubs> = SingleLiveEvent()
+    private var _myGeoLoc = MutableLiveData<Location>()
+    val myGeoLoc: LiveData<Location>
+        get() = _myGeoLoc
 
-    val myGeoLoc: MutableLiveData<Location> = MutableLiveData()
 
     private var mPositionService: PositionService? = null
     private var bound: Boolean = false
 
     init {
         viewModelScope.launch {
-            listOfLocationWithSubs = myDao.getAllLocationsWithSubs().toMutableList()
-            allLocationsWithSub.postValue(listOfLocationWithSubs)
+            _allLocationsWithSub.postValue(myDao.getAllLocationsWithSubs().toMutableList())
         }
     }
 
@@ -56,7 +58,7 @@ class MapViewModel @Inject constructor(
                 mPositionService?.let { positionService ->
                     if (bound) {
                         if (positionService.geoLoc != null) {
-                            myGeoLoc.postValue(positionService.geoLoc)
+                            _myGeoLoc.postValue(positionService.geoLoc)
                         }
                     }
                 }
@@ -102,6 +104,18 @@ class MapViewModel @Inject constructor(
         }
     }
 
+    suspend fun onAddNewPosition(lat: Double, lon: Double, nameChoosen: String, delta: Int) = flow {
+
+        val locationInfoInserted = LocationInfo(name = nameChoosen, lat = lat, lon = lon, delta = delta)
+        val id = myDao.insert(locationInfoInserted)
+        val ls = myDao.getOneLocationWithSubs(id)
+        Log.d(MainViewModel.TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
+
+        _allLocationsWithSub.value?.add(ls)
+        emit(ls)
+    }
+
+    /*
     fun onAddNewPosition(lat: Double, lon: Double, nameChoosen: String, delta: Int) {
         val locationInfoInserted = LocationInfo(
             name = nameChoosen,
@@ -117,7 +131,7 @@ class MapViewModel @Inject constructor(
             Log.d(TAG, "User add new location ${ls.locationInfo.name} id ${ls.locationInfo.id}")
 
             listOfLocationWithSubs.add(ls)
-            oneLocationWithSub.postValue(ls)
+            _oneLocationWithSub.postValue(ls)
         }
-    }
+    }*/
 }
