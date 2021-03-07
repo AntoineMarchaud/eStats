@@ -14,7 +14,6 @@ import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogAddMainLocationBinding
 import com.amarchaud.estats.view.MapFragment
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
-import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
 import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
 
 
@@ -63,7 +62,6 @@ class AddMainLocationDialog : DialogFragment() {
     private lateinit var sharedPref: SharedPreferences
 
     //viewmodel custom
-    private val newPositionViewModel: NewPositionViewModel by activityViewModels()
     private val geoPointViewModel: GeoPointViewModel by activityViewModels()
     private val numberPickerViewModel: NumberPickerViewModel by activityViewModels()
 
@@ -157,16 +155,6 @@ class AddMainLocationDialog : DialogFragment() {
 
                 // send result to parent Listener
                 setFragmentResult(KEY_RESULT_MAIN, result)
-
-                // same thing by viewModel method
-                newPositionViewModel.setNewPosition(
-                    NewPositionViewModel.NewPosition(
-                        java.lang.Double.parseDouble(lat.text.toString()),
-                        java.lang.Double.parseDouble(lon.text.toString()),
-                        nameEditText.text.toString(),
-                        numberPickerDelta.positionToRadiusInMeter()
-                    )
-                )
 
                 dismiss()
             }

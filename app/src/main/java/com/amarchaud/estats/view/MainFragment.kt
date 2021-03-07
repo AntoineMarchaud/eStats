@@ -28,7 +28,6 @@ import com.amarchaud.estats.extension.*
 import com.amarchaud.estats.model.other.Contact
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
-import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -69,7 +68,6 @@ class MainFragment : Fragment() {
     private val viewModel: MainViewModel by viewModels() // replace ViewModelProvider
 
     // custom viewModel
-    private val newPositionViewModel: NewPositionViewModel by activityViewModels()
     private val geoPointViewModel: GeoPointViewModel by activityViewModels()
 
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
@@ -82,9 +80,6 @@ class MainFragment : Fragment() {
 
         setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN) { _, bundle ->
 
-            println("CONNARD 1")
-
-            /*
             val lat = bundle.getDouble(AddMainLocationDialog.KEY_LAT_RETURNED)
             val lon = bundle.getDouble(AddMainLocationDialog.KEY_LON_RETURNED)
             val nameChoosen = bundle.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
@@ -109,7 +104,7 @@ class MainFragment : Fragment() {
                 }
             }
 
-            closeFABMenu()*/
+            closeFABMenu()
         }
 
         setFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB) { _, bundle ->
@@ -313,31 +308,6 @@ class MainFragment : Fragment() {
                 this.locationInfoSubParam = locationInfoSub
                 this.typeIndexDisplayed = pickerValueIndexStored
                 notifyChanged()
-            }
-        })
-
-
-        // custom ViewModel when adding from DialogFragment !
-        newPositionViewModel.newPositionLiveData.observe(viewLifecycleOwner, {
-            with(it) {
-                lifecycleScope.launch {
-
-                    viewModel.onAddNewPosition(lat, lon, name, delta).collect { oneLocationWithSub ->
-                        with(oneLocationWithSub) {
-                            val header = LocationInfoItem(
-                                this@MainFragment,
-                                locationInfo,
-                                subLocation.size > 0, pickerValueIndexStored
-                            )
-                            val expandableLocationWithSub = ExpandableGroup(header)
-                            subLocation.forEach {
-                                expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
-                            }
-                            groupAdapter.add(expandableLocationWithSub)
-                        }
-                    }
-                }
-
             }
         })
     }

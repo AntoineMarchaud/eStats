@@ -8,10 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.*
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.navArgs
 import com.amarchaud.estats.R
-import com.amarchaud.estats.adapter.LocationInfoItem
-import com.amarchaud.estats.adapter.LocationInfoSubItem
 import com.amarchaud.estats.databinding.MapFragmentBinding
 import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.extension.addCircle
@@ -19,9 +16,7 @@ import com.amarchaud.estats.extension.addMarker
 import com.amarchaud.estats.extension.createCircle
 import com.amarchaud.estats.extension.initMapView
 import com.amarchaud.estats.viewmodel.MapViewModel
-import com.amarchaud.estats.viewmodel.data.NewPositionViewModel
 import com.amarchaud.estats.viewmodel.data.NumberPickerViewModel
-import com.xwray.groupie.ExpandableGroup
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -76,7 +71,6 @@ class MapFragment : Fragment() {
     private val viewModel: MapViewModel by viewModels()
 
     // custome viewmodel
-    private val newPositionViewModel: NewPositionViewModel by activityViewModels()
     private val numberPickerViewModel: NumberPickerViewModel by activityViewModels()
 
     private var myPositionCircle: Polygon? = null
@@ -92,9 +86,6 @@ class MapFragment : Fragment() {
 
         setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN) { _, bundle ->
 
-            println("CONNARD 2")
-
-            /*
             val lat = bundle.getDouble(AddMainLocationDialog.KEY_LAT_RETURNED)
             val lon = bundle.getDouble(AddMainLocationDialog.KEY_LON_RETURNED)
             val nameChoosen = bundle.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
@@ -106,7 +97,7 @@ class MapFragment : Fragment() {
                     binding.mapView.addMarker(lat, lon, nameChoosen, id)
                     binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
                 }
-            }*/
+            }
         }
     }
 
@@ -181,14 +172,14 @@ class MapFragment : Fragment() {
                         myPositionCircle =
                             createCircle(
                                 GeoPoint(initCenterX, initCenterY),
-                                numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1
+                                numberPickerViewModel.pickerValueLiveData.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1
                             )
                     }
                     MODE_MAIN -> {
                         myPositionCircle =
                             createCircle(
                                 GeoPoint(initCenterX, initCenterY),
-                                numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1
+                                numberPickerViewModel.pickerValueLiveData.value?.toDouble() ?: 0.0, requireContext().getColor(R.color.mainLocationCircleColor), -1
                             )
                     }
                     MODE_SUB -> {
@@ -235,7 +226,7 @@ class MapFragment : Fragment() {
                         MODE_MAIN -> {
                             myPositionCircle?.points = Polygon.pointsAsCircle(
                                 GeoPoint(viewModel.myGeoLoc.value?.latitude ?: initCenterX, viewModel.myGeoLoc.value?.longitude ?: initCenterY),
-                                numberPickerViewModel.pickerValueMutableLiveData.value?.toDouble() ?: 10.0
+                                numberPickerViewModel.pickerValueLiveData.value?.toDouble() ?: 10.0
                             )
                             if (!binding.mapView.overlayManager.contains(myPositionCircle))
                                 binding.mapView.overlayManager.add(myPositionCircle)
@@ -255,7 +246,7 @@ class MapFragment : Fragment() {
         }
 
         if (requireArguments().getInt(MODE) != MODE_NORMAL) {
-            numberPickerViewModel.pickerValueMutableLiveData.observe(viewLifecycleOwner, {
+            numberPickerViewModel.pickerValueLiveData.observe(viewLifecycleOwner, {
                 // update map
                 with(requireArguments()) {
                     if (getInt(MODE) == MODE_MAIN_CUSTOM_POSITION) {
@@ -289,19 +280,6 @@ class MapFragment : Fragment() {
                         forEach {
                             binding.mapView.addCircle(GeoPoint(it.lat, it.lon), it.delta.toDouble(), requireContext().getColor(R.color.subLocationCircleColor), it.idSub)
                         }
-                    }
-                }
-            }
-        })
-
-
-
-        newPositionViewModel.newPositionLiveData.observe(viewLifecycleOwner, {
-            with(it) {
-                lifecycleScope.launch {
-                    viewModel.onAddNewPosition(lat, lon, name, delta).collect {
-                        binding.mapView.addMarker(lat, lon, name, id)
-                        binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
                     }
                 }
             }
