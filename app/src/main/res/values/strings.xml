@@ -49,4 +49,7 @@
     <string name="menu_tab1_description">This is your home</string>
     <string name="menu_tab2_title">Map</string>
     <string name="menu_tab2_description">This is your map</string>
+
+    <string name="exitAppTitle">Exit app</string>
+    <string name="exitAppBody">Do you want to quit app ?</string>
 </resources>

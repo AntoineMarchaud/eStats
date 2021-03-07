@@ -101,7 +101,7 @@ class MapFragment : Fragment() {
                     binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
 
                     // hack : inform MainFragment
-                    setFragmentResult(KEY_RESULT_MAP_FRAGMENT, bundleOf("toto" to true))
+                    //setFragmentResult(KEY_RESULT_MAP_FRAGMENT, bundleOf("toto" to true))
                 }
             }
         }

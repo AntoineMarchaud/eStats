@@ -108,10 +108,6 @@ class MainFragment : Fragment(), ILocationInfoClickListener {
             closeFABMenu()
         }
 
-        setFragmentResultListener(MapFragment.KEY_RESULT_MAP_FRAGMENT) {_, bundle ->
-            viewModel.refresh()
-        }
-
         setFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB) { _, bundle ->
 
             val lat = bundle.getDouble(AddSubLocationDialog.KEY_LAT_RETURNED)
