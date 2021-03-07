@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.*
 import androidx.lifecycle.lifecycleScope
 import com.amarchaud.estats.R
@@ -98,6 +99,9 @@ class MapFragment : Fragment() {
                 viewModel.onAddNewPosition(lat, lon, nameChoosen!!, delta).collect {
                     binding.mapView.addMarker(lat, lon, nameChoosen, id)
                     binding.mapView.addCircle(GeoPoint(lat, lon), delta.toDouble(), requireContext().getColor(R.color.mainLocationCircleColor), id)
+
+                    // hack : inform MainFragment
+                    setFragmentResult(KEY_RESULT_MAP_FRAGMENT, bundleOf("toto" to true))
                 }
             }
         }

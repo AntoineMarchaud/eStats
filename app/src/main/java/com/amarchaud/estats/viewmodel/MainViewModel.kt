@@ -169,6 +169,10 @@ class MainViewModel @Inject constructor(
             app.startService(intent)
         }
 
+        refresh()
+    }
+
+    fun refresh() {
         /**
          * Add all at startup or onSavedInstance/onRestoreInstance
          */
