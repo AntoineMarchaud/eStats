@@ -9,7 +9,7 @@
         android:id="@+id/splashFragment"
         android:name="com.amarchaud.estats.view.SplashFragment"
         android:label="@string/splashFragmentLabel"
-        tools:layout="@layout/splash_fragment">
+        tools:layout="@layout/fragment_splash">
         <action
             android:id="@+id/action_splashFragment_to_requestPositionFragment"
             app:destination="@id/requestPositionFragment"
@@ -25,7 +25,7 @@
         android:id="@+id/requestPositionFragment"
         android:name="com.amarchaud.estats.view.RequestPositionFragment"
         android:label="@string/requestPositionFragmentLabel"
-        tools:layout="@layout/request_position_fragment">
+        tools:layout="@layout/fragment_request_position">
         <action
             android:id="@+id/action_requestPositionFragment_to_mainFragment"
             app:destination="@id/mainFragment"

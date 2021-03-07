@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.*
 import androidx.lifecycle.lifecycleScope
 import com.amarchaud.estats.R
-import com.amarchaud.estats.databinding.MapFragmentBinding
+import com.amarchaud.estats.databinding.FragmentMapBinding
 import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.extension.addCircle
 import com.amarchaud.estats.extension.addMarker
@@ -65,7 +65,7 @@ class MapFragment : Fragment() {
         }
     }
 
-    private var _binding: MapFragmentBinding? = null
+    private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: MapViewModel by viewModels()
@@ -111,7 +111,7 @@ class MapFragment : Fragment() {
             Context.MODE_PRIVATE
         )
 
-        _binding = MapFragmentBinding.inflate(inflater)
+        _binding = FragmentMapBinding.inflate(inflater)
         return binding.root
     }
 

@@ -20,7 +20,7 @@ import com.amarchaud.estats.R
 import com.amarchaud.estats.adapter.LocationInfoItem
 import com.amarchaud.estats.adapter.LocationInfoSubItem
 import com.amarchaud.estats.adapter.decoration.SwipeTouchCallback
-import com.amarchaud.estats.databinding.MainFragmentBinding
+import com.amarchaud.estats.databinding.FragmentMainBinding
 import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
 import com.amarchaud.estats.dialog.ListContactDialog
@@ -64,7 +64,7 @@ class MainFragment : Fragment(), ILocationInfoClickListener {
 
     private var isFABOpen: Boolean = false
 
-    private var _binding: MainFragmentBinding? = null
+    private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: MainViewModel by viewModels() // replace ViewModelProvider
@@ -178,7 +178,7 @@ class MainFragment : Fragment(), ILocationInfoClickListener {
 
 
         (activity as AppCompatActivity).supportActionBar?.show()
-        _binding = MainFragmentBinding.inflate(inflater)
+        _binding = FragmentMainBinding.inflate(inflater)
         return binding.root
     }
 

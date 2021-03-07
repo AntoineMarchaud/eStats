@@ -3,24 +3,22 @@ package com.amarchaud.estats.view
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import android.provider.Settings
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
 import com.amarchaud.estats.R
-import com.amarchaud.estats.application.eStatsApplication
-import com.amarchaud.estats.databinding.RequestPositionFragmentBinding
+import com.amarchaud.estats.databinding.FragmentRequestPositionBinding
 import com.amarchaud.estats.viewmodel.RequestPositionViewModel
 
 class RequestPositionFragment : Fragment() {
 
-    private lateinit var binding: RequestPositionFragmentBinding
+    private lateinit var binding: FragmentRequestPositionBinding
     private val viewModel: RequestPositionViewModel by viewModels()
 
     override fun onCreateView(
@@ -28,7 +26,7 @@ class RequestPositionFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         (activity as AppCompatActivity).supportActionBar?.show()
-        binding = RequestPositionFragmentBinding.inflate(inflater, container, false)
+        binding = FragmentRequestPositionBinding.inflate(inflater, container, false)
         return binding.root
     }
 
