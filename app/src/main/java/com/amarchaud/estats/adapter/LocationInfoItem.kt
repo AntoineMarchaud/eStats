@@ -7,6 +7,7 @@ import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.ItemLocationBinding
 import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.dialog.AddSubLocationDialog
+import com.amarchaud.estats.interfaces.ILocationInfoClickListener
 import com.amarchaud.estats.utils.TimeTransformation
 import com.amarchaud.estats.view.MainFragment
 import com.xwray.groupie.ExpandableGroup
@@ -17,7 +18,7 @@ import com.xwray.groupie.viewbinding.BindableItem
  * Example with ViewBinding only
  */
 class LocationInfoItem(
-    private var fragment: MainFragment,
+    private val onClickListener: ILocationInfoClickListener,
     var locationInfo: LocationInfo,
     var displayExpanded: Boolean,
     var typeIndexDisplayed: Int
@@ -49,11 +50,7 @@ class LocationInfoItem(
             }
 
             itemLayout.setOnLongClickListener {
-
-                val fragmentManager = fragment.requireActivity().supportFragmentManager
-                val customPopup = AddSubLocationDialog.newInstance(locationInfo.name!!, locationInfo.lat, locationInfo.lon, locationInfo.delta, locationInfo.id)
-                customPopup.show(fragmentManager, "add new position")
-
+                onClickListener.onLocationInfoClicked(locationInfo)
                 true
             }
 

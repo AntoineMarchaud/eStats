@@ -25,6 +25,8 @@ import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
 import com.amarchaud.estats.dialog.ListContactDialog
 import com.amarchaud.estats.extension.*
+import com.amarchaud.estats.interfaces.ILocationInfoClickListener
+import com.amarchaud.estats.model.entity.LocationInfo
 import com.amarchaud.estats.model.other.Contact
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
@@ -44,7 +46,7 @@ import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), ILocationInfoClickListener {
 
     companion object {
 
@@ -487,5 +489,10 @@ class MainFragment : Fragment() {
                 }
 
             }).check()
+    }
+
+    override fun onLocationInfoClicked(locationInfo: LocationInfo) {
+        val customPopup = AddSubLocationDialog.newInstance(locationInfo.name!!, locationInfo.lat, locationInfo.lon, locationInfo.delta, locationInfo.id)
+        customPopup.show(parentFragmentManager, "add new position")
     }
 }
