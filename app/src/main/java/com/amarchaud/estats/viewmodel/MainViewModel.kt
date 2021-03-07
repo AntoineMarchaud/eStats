@@ -311,33 +311,32 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onAddContacts(allContacts: ArrayList<Contact>) = flow {
+    suspend fun onAddContacts(allContacts: ArrayList<Contact>) = flow {
+
         allContacts.forEach { oneContact ->
 
             val name = oneContact.name
             val addr = oneContact.addr
 
-            viewModelScope.launch {
-                // convert addr to GeoLoc !
-                val geoLoc = GeoCoder.getLocationFromAddressSuspend(addr, app)
-                geoLoc?.let {
 
-                    val locationInfoInserted = LocationInfo(
-                        name = name,
-                        lat = it.latitude,
-                        lon = it.longitude
-                    )
+            // convert addr to GeoLoc !
+            val geoLoc = GeoCoder.getLocationFromAddressSuspend(addr, app)
+            geoLoc?.let {
 
-                    // add to Database
-                    val id = myDao.insert(locationInfoInserted)
-                    val ls = myDao.getOneLocationWithSubs(id)
-                    Log.d(TAG, "Contact added ${ls.locationInfo.name} id ${ls.locationInfo.id}")
+                val locationInfoInserted = LocationInfo(
+                    name = name,
+                    lat = it.latitude,
+                    lon = it.longitude
+                )
 
-                    _allLocationsWithSub.value!!.add(ls)
-                    emit(ls)
-                }
+                // add to Database
+                val id = myDao.insert(locationInfoInserted)
+                val ls = myDao.getOneLocationWithSubs(id)
+                Log.d(TAG, "Contact added ${ls.locationInfo.name} id ${ls.locationInfo.id}")
+
+                _allLocationsWithSub.value!!.add(ls)
+                emit(ls)
             }
         }
-
     }
 }

@@ -9,10 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.NumberPicker
 import android.widget.Toast
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.*
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogAddMainLocationBinding
 import com.amarchaud.estats.view.MapFragment
@@ -159,7 +156,7 @@ class AddMainLocationDialog : DialogFragment() {
                 }
 
                 // send result to parent Listener
-                requireActivity().supportFragmentManager.setFragmentResult(KEY_RESULT_MAIN, result)
+                setFragmentResult(KEY_RESULT_MAIN, result)
 
                 // same thing by viewModel method
                 newPositionViewModel.setNewPosition(

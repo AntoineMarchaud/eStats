@@ -25,9 +25,6 @@ import com.amarchaud.estats.dialog.AddMainLocationDialog
 import com.amarchaud.estats.dialog.AddSubLocationDialog
 import com.amarchaud.estats.dialog.ListContactDialog
 import com.amarchaud.estats.extension.*
-import com.amarchaud.estats.model.entity.LocationInfo
-import com.amarchaud.estats.model.entity.LocationInfoSub
-import com.amarchaud.estats.model.entity.LocationWithSubs
 import com.amarchaud.estats.model.other.Contact
 import com.amarchaud.estats.viewmodel.MainViewModel
 import com.amarchaud.estats.viewmodel.data.GeoPointViewModel
@@ -43,14 +40,12 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.TouchCallback
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import org.osmdroid.views.overlay.Marker
 
 
 @AndroidEntryPoint
-class MainFragment : Fragment(), FragmentResultListener {
+class MainFragment : Fragment() {
 
     companion object {
 
@@ -80,6 +75,99 @@ class MainFragment : Fragment(), FragmentResultListener {
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     private lateinit var sharedPref: SharedPreferences
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+
+        setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN) { _, bundle ->
+
+            println("CONNARD 1")
+
+            /*
+            val lat = bundle.getDouble(AddMainLocationDialog.KEY_LAT_RETURNED)
+            val lon = bundle.getDouble(AddMainLocationDialog.KEY_LON_RETURNED)
+            val nameChoosen = bundle.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
+            val delta = bundle.getInt(AddMainLocationDialog.KEY_DELTA_RETURNED)
+
+            lifecycleScope.launch {
+
+                // add in DB
+                viewModel.onAddNewPosition(lat, lon, nameChoosen!!, delta).collect { oneLocationWithSub ->
+                    with(oneLocationWithSub) {
+                        val header = LocationInfoItem(
+                            this@MainFragment,
+                            locationInfo,
+                            subLocation.size > 0, pickerValueIndexStored
+                        )
+                        val expandableLocationWithSub = ExpandableGroup(header)
+                        subLocation.forEach {
+                            expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
+                        }
+                        groupAdapter.add(expandableLocationWithSub)
+                    }
+                }
+            }
+
+            closeFABMenu()*/
+        }
+
+        setFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB) { _, bundle ->
+
+            val lat = bundle.getDouble(AddSubLocationDialog.KEY_LAT_RETURNED)
+            val lon = bundle.getDouble(AddSubLocationDialog.KEY_LON_RETURNED)
+            val nameChoosen = bundle.getString(AddSubLocationDialog.KEY_NAME_RETURNED)
+            val idMain = bundle.getInt(AddSubLocationDialog.KEY_PARENT_ID)
+
+            lifecycleScope.launch {
+                // add in DB
+                viewModel.onAddNewPositionSub(lat, lon, nameChoosen!!, 7, idMain).collect { oneSub ->
+
+                    val sub = oneSub.first
+                    val posMain = oneSub.second
+
+                    // then add visually !
+                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(posMain) as ExpandableGroup
+                    expandableLocationWithSub.add(LocationInfoSubItem(sub, pickerValueIndexStored))
+
+                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
+                        this.displayExpanded = true
+                    }
+                    expandableLocationWithSub.notifyItemChanged(0)
+
+                }
+            }
+
+            closeFABMenu()
+        }
+
+        setFragmentResultListener(ListContactDialog.KEY_RESULT_CONTACT) { _, bundle ->
+            // get all contacts
+            val allContacts = bundle.getParcelableArrayList<Contact>(ListContactDialog.KEY_RESULT_LIST_CONTACT)
+            if (allContacts != null) {
+
+                lifecycleScope.launch {
+                    viewModel.onAddContacts(allContacts).collect {
+                        // add each person !
+                        val header = LocationInfoItem(
+                            this@MainFragment,
+                            it.locationInfo,
+                            it.subLocation.size > 0,
+                            pickerValueIndexStored
+                        )
+                        val expandableLocationWithSub = ExpandableGroup(header)
+                        it.subLocation.forEach {
+                            expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
+                        }
+                        groupAdapter.add(expandableLocationWithSub)
+                    }
+                }
+            }
+
+            closeFABMenu()
+        }
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -118,7 +206,7 @@ class MainFragment : Fragment(), FragmentResultListener {
                     Toast.makeText(requireContext(), getString(R.string.activateGPS), Toast.LENGTH_LONG).show()
                 } else {
                     val customPopup = AddMainLocationDialog.newInstance()
-                    customPopup.show(requireActivity().supportFragmentManager, "add new position")
+                    customPopup.show(parentFragmentManager, "add new position")
                 }
             }
 
@@ -258,19 +346,11 @@ class MainFragment : Fragment(), FragmentResultListener {
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
-
-        //requireActivity().supportFragmentManager.setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN, this, this)
-        requireActivity().supportFragmentManager.setFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB, this, this)
-        requireActivity().supportFragmentManager.setFragmentResultListener(ListContactDialog.KEY_RESULT_CONTACT, this, this)
     }
 
     override fun onPause() {
         super.onPause()
         viewModel.onPause()
-
-        //requireActivity().supportFragmentManager.clearFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN)
-        requireActivity().supportFragmentManager.clearFragmentResultListener(AddSubLocationDialog.KEY_RESULT_SUB)
-        requireActivity().supportFragmentManager.clearFragmentResultListener(ListContactDialog.KEY_RESULT_CONTACT)
     }
 
     override fun onDestroy() {
@@ -416,89 +496,6 @@ class MainFragment : Fragment(), FragmentResultListener {
         }
     }
 
-
-    override fun onFragmentResult(requestKey: String, result: Bundle) {
-        if (requestKey == AddMainLocationDialog.KEY_RESULT_MAIN) {
-
-            val lat = result.getDouble(AddMainLocationDialog.KEY_LAT_RETURNED)
-            val lon = result.getDouble(AddMainLocationDialog.KEY_LON_RETURNED)
-            val nameChoosen = result.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
-            val delta = result.getInt(AddMainLocationDialog.KEY_DELTA_RETURNED)
-
-            lifecycleScope.launch {
-
-                // add in DB
-                viewModel.onAddNewPosition(lat, lon, nameChoosen!!, delta).collect { oneLocationWithSub ->
-                    with(oneLocationWithSub) {
-                        val header = LocationInfoItem(
-                            this@MainFragment,
-                            locationInfo,
-                            subLocation.size > 0, pickerValueIndexStored
-                        )
-                        val expandableLocationWithSub = ExpandableGroup(header)
-                        subLocation.forEach {
-                            expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
-                        }
-                        groupAdapter.add(expandableLocationWithSub)
-                    }
-                }
-            }
-
-        } else if (requestKey == AddSubLocationDialog.KEY_RESULT_SUB) {
-
-            val lat = result.getDouble(AddSubLocationDialog.KEY_LAT_RETURNED)
-            val lon = result.getDouble(AddSubLocationDialog.KEY_LON_RETURNED)
-            val nameChoosen = result.getString(AddSubLocationDialog.KEY_NAME_RETURNED)
-            val idMain = result.getInt(AddSubLocationDialog.KEY_PARENT_ID)
-
-            lifecycleScope.launch {
-                // add in DB
-                viewModel.onAddNewPositionSub(lat, lon, nameChoosen!!, 7, idMain).collect { oneSub ->
-
-                    val sub = oneSub.first
-                    val posMain = oneSub.second
-
-                    // then add visually !
-                    val expandableLocationWithSub = groupAdapter.getTopLevelGroup(posMain) as ExpandableGroup
-                    expandableLocationWithSub.add(LocationInfoSubItem(sub, pickerValueIndexStored))
-
-                    (expandableLocationWithSub.getGroup(0) as LocationInfoItem).apply {
-                        this.displayExpanded = true
-                    }
-                    expandableLocationWithSub.notifyItemChanged(0)
-
-                }
-            }
-
-        } else if (requestKey == ListContactDialog.KEY_RESULT_CONTACT) {
-
-            // get all contacts
-            val allContacts = result.getParcelableArrayList<Contact>(ListContactDialog.KEY_RESULT_LIST_CONTACT)
-            if (allContacts != null) {
-
-                lifecycleScope.launch {
-                    viewModel.onAddContacts(allContacts).collect {
-                        // add each person !
-                        val header = LocationInfoItem(
-                            this@MainFragment,
-                            it.locationInfo,
-                            it.subLocation.size > 0,
-                            pickerValueIndexStored
-                        )
-                        val expandableLocationWithSub = ExpandableGroup(header)
-                        it.subLocation.forEach {
-                            expandableLocationWithSub.add(LocationInfoSubItem(it, pickerValueIndexStored))
-                        }
-                        groupAdapter.add(expandableLocationWithSub)
-                    }
-                }
-
-            }
-        }
-
-        closeFABMenu()
-    }
-
     private fun requestContacts() {
 
         Dexter
@@ -508,7 +505,7 @@ class MainFragment : Fragment(), FragmentResultListener {
 
                 override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
                     val customPopup = ListContactDialog.newInstance()
-                    customPopup.show(requireActivity().supportFragmentManager, "show contact")
+                    customPopup.show(parentFragmentManager, "show contact")
                 }
 
                 override fun onPermissionDenied(p0: PermissionDeniedResponse?) {

@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.setFragmentResult
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.CursorLoader
 import androidx.loader.content.Loader
@@ -92,7 +93,7 @@ class ListContactDialog : DialogFragment(), LoaderManager.LoaderCallbacks<Cursor
                     }
 
                     // send result to Listener(s)
-                    requireActivity().supportFragmentManager.setFragmentResult(KEY_RESULT_CONTACT, result)
+                    setFragmentResult(KEY_RESULT_CONTACT, result)
 
                     dismiss()
                 }

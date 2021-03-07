@@ -10,10 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.*
 import com.amarchaud.estats.R
 import com.amarchaud.estats.databinding.DialogAddMainLocationBinding
 import com.amarchaud.estats.databinding.DialogAddSubLocationBinding
@@ -138,7 +135,7 @@ class AddSubLocationDialog : DialogFragment() {
                 }
 
                 // send result to Listener(s)
-                parentFragmentManager.setFragmentResult(KEY_RESULT_SUB, result)
+                setFragmentResult(KEY_RESULT_SUB, result)
                 dialog?.dismiss()
             }
 
