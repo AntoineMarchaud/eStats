@@ -53,9 +53,6 @@ class  MainActivity : AppCompatActivity() {
             }
         }
 
-        // bottom nav
-        findViewById<BottomNavigationView>(R.id.bottom_nav).setupWithNavController(navController)
-
         // top Fragment (no arrow displayed, and display hamburger if there is a drawerlayout)
         appBarConfiguration = AppBarConfiguration(
             setOf(
@@ -66,8 +63,13 @@ class  MainActivity : AppCompatActivity() {
             )
         )
 
-        // actionBar config
-        setupActionBarWithNavController(navController, appBarConfiguration)
+        with(binding) {
+            // actionBar config
+            setupActionBarWithNavController(navController, appBarConfiguration)
+
+            // bottom nav
+            bottomNav.setupWithNavController(navController)
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

@@ -41,6 +41,8 @@ class MapFragment : Fragment() {
         const val LAT_FIXED = "LAT_FIXED"
         const val LON_FIXED = "LON_FIXED"
 
+        const val  KEY_RESULT_MAP_FRAGMENT = "KEY_RESULT_MAP_FRAGMENT"
+
         // for classic Fragment declaration
         fun newInstance(mode: Int = MODE_NORMAL): MapFragment {
 

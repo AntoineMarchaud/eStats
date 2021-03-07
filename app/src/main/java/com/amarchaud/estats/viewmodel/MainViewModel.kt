@@ -35,7 +35,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     val app: Application,
-    private val myDao: AppDao // injected by hilt
+    private val myDao: AppDao
 ) : AndroidViewModel(app) {
 
     companion object {
@@ -338,5 +338,9 @@ class MainViewModel @Inject constructor(
                 emit(ls)
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
     }
 }

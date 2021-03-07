@@ -76,12 +76,11 @@ class MainFragment : Fragment(), ILocationInfoClickListener {
 
     private lateinit var sharedPref: SharedPreferences
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         setFragmentResultListener(AddMainLocationDialog.KEY_RESULT_MAIN) { _, bundle ->
-
             val lat = bundle.getDouble(AddMainLocationDialog.KEY_LAT_RETURNED)
             val lon = bundle.getDouble(AddMainLocationDialog.KEY_LON_RETURNED)
             val nameChoosen = bundle.getString(AddMainLocationDialog.KEY_NAME_RETURNED)
@@ -283,6 +282,9 @@ class MainFragment : Fragment(), ILocationInfoClickListener {
          */
         viewModel.oneLocationToModify.observe(viewLifecycleOwner, { oneLocation ->
 
+            if(groupAdapter.groupCount == 0)
+                return@observe
+
             val locationInfo = oneLocation.first
             val position = oneLocation.second
 
@@ -298,6 +300,9 @@ class MainFragment : Fragment(), ILocationInfoClickListener {
         })
 
         viewModel.oneSubLocationToModify.observe(viewLifecycleOwner, { oneSubLocation ->
+
+            if(groupAdapter.groupCount == 0)
+                return@observe
 
             val locationInfoSub = oneSubLocation.first
             val indexMain = oneSubLocation.second
