@@ -33,6 +33,12 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class PositionService : Service() {
 
+    @Inject
+    lateinit var myApp: Application
+
+    @Inject
+     lateinit var myDao: AppDao
+
     companion object {
         const val TAG = "PositionService"
         const val CHANNEL_ID = "channelIdService"
@@ -41,11 +47,6 @@ class PositionService : Service() {
         const val ACTION_CLOSE_FOREGROUND = "ACTION_CLOSE_FOREGROUND"
     }
 
-    @Inject
-    lateinit var myDao: AppDao
-
-    @Inject
-    lateinit var myApp: Application
 
     private lateinit var sharedPref: SharedPreferences
 
